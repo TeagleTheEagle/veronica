@@ -9,7 +9,7 @@ connected to JARVIS and does not work on JARVIS: JARVIS's folders are refused in
 
 ## Starting VERONICA
 
-- **The window:** double-click **`VERONICA.exe`** in this folder (`D:\VERONICA`).
+- **The window:** double-click **`VERONICA.exe`** in this folder (`C:\Users\jonny\JARVIS-claude-workspace\veronica`), or the VERONICA shortcut on the Desktop.
   You can pin it to the taskbar or Start menu: right-click it.
   - **Wide window:** the sidebar (Chat, Tools, Memory, Projects, Research, Settings), the orb and your messages in
     the middle, and "Suggested for you" and your recent research on the right. Narrow the window and it becomes the
