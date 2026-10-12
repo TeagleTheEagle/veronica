@@ -11,10 +11,13 @@ import re
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-WORKSPACE = HERE.parent  # C:\Users\jonny\JARVIS-claude-workspace: JARVIS, FRIDAY, governance, reference, VERONICA
+# JARVIS's workspace: JARVIS, FRIDAY, governance, reference. Named outright since VERONICA moved to her own folder
+# (2026-10-12); it used to be HERE.parent, which outside the workspace would block a whole drive.
+WORKSPACE = Path(r'C:\Users\jonny\JARVIS-claude-workspace')
 
 BLOCKED_FOLDERS = [
     WORKSPACE,
+    HERE,  # VERONICA's own folder: she does not edit herself
     Path(r'D:\JARVIS-release-work'),
     Path(r'D:\JARVIS-S6-FRESHVM'),
     Path(r'D:\JARVIS-stage7'),
