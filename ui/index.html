@@ -1,0 +1,1045 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Veronica</title>
+<style>
+:root {
+  --bg: #05060a;
+  --panel: rgba(255, 255, 255, 0.025);
+  --card: rgba(255, 255, 255, 0.035);
+  --card-hi: rgba(255, 255, 255, 0.065);
+  --line: rgba(255, 255, 255, 0.08);
+  --line-hi: rgba(255, 255, 255, 0.15);
+  --text: #eceaf4;
+  --muted: #8f90a6;
+  --faint: #5d5f73;
+  --accent: #a99bff;
+  --accent-2: #8f7dff;
+  --good: #6ee7b7;
+  --bad: #fb7185;
+  --radius: 18px;
+  font-family: "Segoe UI Variable Display", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); overflow: hidden; }
+body {
+  background:
+    radial-gradient(70% 55% at 50% 0%, rgba(120, 104, 255, 0.13), transparent 62%),
+    radial-gradient(50% 40% at 85% 100%, rgba(56, 189, 248, 0.05), transparent 60%),
+    radial-gradient(45% 45% at 10% 90%, rgba(240, 171, 252, 0.04), transparent 60%),
+    var(--bg);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
+button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.muted { color: var(--muted); }
+
+/* ----- the frame: phone by default; sidebar and rail on a wide window ----- */
+.app { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr; }
+#sidebar, #rail { display: none; }
+#main { position: relative; min-width: 0; overflow: hidden; }
+.screen { position: absolute; inset: 0; display: none; flex-direction: column; padding: 22px 22px 0; }
+.screen.active { display: flex; animation: enter .28s ease; }
+@keyframes enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+@media (min-width: 900px) {
+  .app { grid-template-columns: 252px 1fr; }
+  #sidebar { display: flex; }
+  .phone-only { display: none !important; }
+  .screen { padding: 26px 34px 0; }
+}
+@media (min-width: 1220px) {
+  .app { grid-template-columns: 252px 1fr 316px; }
+  #rail { display: flex; }
+}
+@media (max-width: 899px) { .desk-only { display: none !important; } }
+
+/* ----- sidebar ----- */
+#sidebar { flex-direction: column; padding: 22px 16px 18px; border-right: 1px solid var(--line); background: linear-gradient(180deg, rgba(14, 14, 26, 0.75), rgba(6, 7, 12, 0.75)); backdrop-filter: blur(16px); }
+.brand { display: flex; align-items: center; gap: 10px; padding: 4px 6px 22px; }
+#orb-brand { width: 54px; height: 54px; }
+.brand b { display: block; font-weight: 400; font-size: 21px; letter-spacing: .2px; }
+.brand small { color: var(--muted); font-size: 11.5px; }
+.side-nav { display: flex; flex-direction: column; gap: 4px; }
+.side-nav button { display: flex; align-items: center; gap: 12px; height: 42px; padding: 0 14px; border-radius: 12px; font-size: 14.5px; color: #cfd0dc; border: 1px solid transparent; text-align: left; }
+.side-nav button:hover { background: var(--card); }
+.side-nav button.on { background: linear-gradient(90deg, rgba(143, 125, 255, 0.28), rgba(143, 125, 255, 0.12)); border-color: rgba(169, 155, 255, 0.45); color: #fff; box-shadow: 0 0 22px rgba(143, 125, 255, .18); }
+.side-gap { flex: 1; }
+.side-card { display: flex; align-items: center; gap: 11px; padding: 12px; border-radius: 16px; border: 1px solid var(--line); background: var(--card); }
+.side-card .avatar { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(135deg, #b8a9ff, #7c6cff); color: #120f2b; font-weight: 700; font-size: 14px; }
+.side-card b { display: block; font-weight: 500; font-size: 13.5px; }
+.side-card small { color: var(--muted); font-size: 11.5px; }
+
+/* ----- right rail ----- */
+#rail { flex-direction: column; gap: 14px; padding: 22px 18px 18px 0; overflow-y: auto; }
+.rail-box { border: 1px solid var(--line); border-radius: 18px; background: var(--panel); padding: 14px; }
+.rail-box h5 { margin: 2px 4px 12px; display: flex; justify-content: space-between; align-items: baseline; font-weight: 500; font-size: 15px; }
+.rail-box h5 button { color: var(--accent); font-size: 12px; }
+.sugg { width: 100%; display: grid; grid-template-columns: 34px 1fr 16px; align-items: center; gap: 10px; padding: 10px; border-radius: 13px; border: 1px solid var(--line); background: var(--card); text-align: left; margin-bottom: 8px; }
+.sugg:hover { background: var(--card-hi); border-color: var(--line-hi); }
+.sugg .ic { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: rgba(143, 125, 255, .14); color: #c9c0ff; }
+.sugg b { display: block; font-weight: 500; font-size: 13px; }
+.sugg span { display: block; color: var(--muted); font-size: 11.5px; margin-top: 1px; }
+.sugg .chev { width: 16px; height: 16px; color: var(--muted); }
+.recent { width: 100%; display: flex; align-items: center; gap: 10px; padding: 9px 6px; border-radius: 10px; font-size: 13.5px; text-align: left; color: #d6d7e2; }
+.recent:hover { background: var(--card); }
+.recent .st { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); flex: none; }
+.recent .st.running, .recent .st.queued { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+.recent .st.succeeded { background: var(--good); }
+.recent .st.failed { background: var(--bad); }
+.recent span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.empty-note { color: var(--muted); font-size: 12.5px; padding: 4px 6px; line-height: 1.5; }
+
+.icon-btn { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: var(--text); }
+.icon-btn.ring { border: 1px solid var(--line-hi); background: var(--card); }
+.icon-btn:hover { background: var(--card-hi); }
+
+/* ----- splash ----- */
+#splash { align-items: center; justify-content: center; padding-bottom: 60px; }
+#orb-splash { width: 320px; height: 320px; }
+#splash h1 { font-weight: 300; font-size: 44px; letter-spacing: .5px; margin: 22px 0 10px; }
+#splash p { margin: 0; color: var(--muted); font-size: 15px; letter-spacing: .25em; text-transform: uppercase; }
+#splash .bar { position: absolute; bottom: 34px; width: 70px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, var(--accent), transparent); animation: bar 1.6s ease-in-out infinite; }
+@keyframes bar { 50% { opacity: .35; } }
+
+/* ----- home ----- */
+.top { display: flex; align-items: center; justify-content: space-between; }
+.dots4 { display: grid; grid-template-columns: 7px 7px; gap: 5px; padding: 12px; }
+.dots4 i { width: 7px; height: 7px; border-radius: 50%; background: var(--text); }
+.home-main { flex: 1; min-height: 0; display: flex; flex-direction: column; width: 100%; max-width: 820px; margin: 0 auto; }
+#hero { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.greet { padding-top: 22px; }
+.greet h1 { font-weight: 300; font-size: 36px; line-height: 1.12; margin: 0 0 14px; letter-spacing: .2px; }
+.greet h1 em { font-style: normal; color: var(--accent); }
+.greet p { margin: 0; color: var(--muted); font-size: 15.5px; line-height: 1.5; max-width: 320px; }
+.hero-orb { flex: 1; min-height: 160px; display: grid; place-items: center; }
+#orb-hero { width: 100%; height: 100%; max-height: 380px; cursor: pointer; }
+.desk-greet { text-align: center; margin: 0 0 18px; }
+.desk-greet h1 { font-weight: 400; font-size: 34px; margin: 0 0 8px; }
+.desk-greet p { margin: 0; color: var(--muted); font-size: 16px; }
+@media (min-width: 900px) { .greet { display: none; } .hero-orb { max-height: 400px; } }
+@media (max-width: 899px) { .desk-greet { display: none; } }
+
+.chips { margin: 0 0 16px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.chip { height: 42px; display: flex; align-items: center; gap: 8px; padding: 0 14px 0 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); font-size: 13.5px; }
+.chip:hover { background: var(--card-hi); border-color: var(--line-hi); }
+.chip .ci { width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; }
+.chip .ci svg { width: 16px; height: 16px; }
+@media (max-width: 899px) { .chips { display: none; } }
+
+#thread { flex: 1; min-height: 0; overflow-y: auto; padding: 18px 2px 10px; display: none; flex-direction: column; gap: 14px; scrollbar-width: thin; scrollbar-color: #24252f transparent; }
+.chatting #hero { display: none; }
+.chatting #thread { display: flex; }
+.msg { max-width: 86%; font-size: 14.5px; line-height: 1.55; white-space: pre-wrap; word-wrap: break-word; user-select: text; }
+.msg.you { align-self: flex-end; padding: 10px 15px; border-radius: 18px 18px 6px 18px; background: rgba(169, 155, 255, .14); border: 1px solid rgba(169, 155, 255, .22); }
+.msg.veronica { align-self: flex-start; display: grid; grid-template-columns: 24px 1fr; gap: 10px; }
+.msg.veronica .mini { width: 24px; height: 24px; border-radius: 50%; margin-top: 1px; background: radial-gradient(circle at 35% 30%, #e8e4ff 0 8%, #8f7dff 30%, #38bdf8 62%, #1b1745 100%); box-shadow: 0 0 10px rgba(143, 125, 255, .5); }
+.msg code { font-family: "Cascadia Code", Consolas, monospace; font-size: 13px; background: rgba(255,255,255,.07); padding: 1px 5px; border-radius: 5px; }
+details.more { margin-top: 8px; }
+details.more summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+pre.code { margin: 8px 0 0; max-height: 280px; overflow: auto; padding: 10px 12px; border-radius: 12px; background: #0b0d14; border: 1px solid var(--line); font: 12px/1.45 "Cascadia Code", Consolas, monospace; white-space: pre; color: #c9cad6; user-select: text; }
+pre.code .add { color: #86efac; } pre.code .del { color: #fda4af; } pre.code .hunk { color: #93c5fd; }
+.working { align-self: flex-start; color: var(--muted); font-size: 13px; display: flex; align-items: center; gap: 10px; padding-left: 34px; }
+.working i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: blink 1.2s infinite; }
+.working i:nth-child(2) { animation-delay: .2s; } .working i:nth-child(3) { animation-delay: .4s; }
+@keyframes blink { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+
+.project-pill { align-self: flex-start; margin: 0 0 10px; display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); padding: 5px 12px 5px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); }
+.project-pill b { color: var(--text); font-weight: 500; }
+.project-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); }
+.project-pill.open .dot { background: var(--good); box-shadow: 0 0 8px rgba(110, 231, 183, .6); }
+.changes { margin: 0 0 10px; padding: 12px 14px; border-radius: 16px; border: 1px solid rgba(169,155,255,.28); background: rgba(169,155,255,.07); display: none; }
+.changes.show { display: block; }
+.changes .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.changes strong { font-weight: 500; font-size: 14px; display: block; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.changes small { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.changes .acts { display: flex; gap: 8px; flex: none; }
+.pill-btn { height: 32px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line-hi); font-size: 13px; background: var(--card); }
+.pill-btn.primary { background: linear-gradient(180deg, #c3b8ff, #9d8cff); color: #17133a; border: 0; font-weight: 600; }
+.pill-btn.danger { border-color: rgba(251, 113, 133, .45); color: #fecdd3; }
+.pill-btn:hover { filter: brightness(1.1); }
+
+.ask { margin: 0 0 14px; display: flex; align-items: center; gap: 6px; height: 60px; padding: 0 8px 0 8px; border-radius: 999px; border: 1px solid rgba(169,155,255,.42); background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.02)); box-shadow: 0 0 28px rgba(143,125,255,.14), inset 0 1px 0 rgba(255,255,255,.05); }
+.ask input { flex: 1; min-width: 0; height: 100%; background: none; border: 0; outline: none; color: var(--text); font: inherit; font-size: 15px; padding: 0 6px; user-select: text; }
+.ask input::placeholder { color: var(--muted); }
+.round { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; }
+.round:hover { background: var(--card-hi); }
+.send { background: linear-gradient(180deg, #c3b8ff, #9d8cff); color: #17133a; box-shadow: 0 0 18px rgba(157, 140, 255, .45); }
+.send svg { stroke-width: 2.2; }
+.wave { border: 1px solid rgba(169,155,255,.5); background: rgba(169,155,255,.12); color: #d9d3ff; }
+
+.nav { margin: 0 -22px; display: grid; grid-template-columns: repeat(4, 1fr); padding: 10px 6px 14px; border-top: 1px solid var(--line); background: rgba(5, 6, 10, .85); backdrop-filter: blur(10px); }
+.nav button { display: grid; justify-items: center; gap: 6px; font-size: 12px; color: var(--muted); padding: 4px 0; }
+.nav button.on { color: var(--text); }
+.nav .home-dot { width: 22px; height: 22px; border-radius: 7px; background: radial-gradient(circle at 35% 30%, #fff 0 10%, #b9b0ff 35%, #7e6cff 75%); box-shadow: 0 0 10px rgba(143,125,255,.7); }
+.nav button:not(.on) .home-dot { background: none; box-shadow: none; border: 1.6px solid currentColor; }
+
+/* ----- voice ----- */
+#voice { align-items: center; padding-bottom: 34px; }
+#voice .top { width: 100%; justify-content: flex-end; }
+.voice-stage { flex: 1; width: 100%; display: grid; place-items: center; min-height: 0; }
+#orb-voice { width: 100%; height: 100%; max-height: 560px; cursor: pointer; }
+#voice-status { font-weight: 300; font-size: 26px; margin: 0; }
+#voice-sub { color: var(--muted); font-size: 14px; margin: 6px 0 0; min-height: 20px; }
+#voice-caption { color: var(--muted); font-size: 14px; line-height: 1.45; text-align: center; max-width: 420px; min-height: 40px; margin: 0 0 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.wave-btn { margin-top: 26px; width: 76px; height: 76px; border-radius: 50%; display: grid; place-items: center; border: 1px solid rgba(169,155,255,.45); background: radial-gradient(circle at 50% 40%, rgba(169,155,255,.12), rgba(169,155,255,.02)); box-shadow: 0 0 30px rgba(143,125,255,.25), inset 0 0 18px rgba(143,125,255,.18); color: #d9d3ff; }
+.wave-btn svg { width: 28px; height: 28px; }
+.wave-btn.off { border-color: var(--line-hi); box-shadow: none; color: var(--muted); }
+
+/* ----- pages ----- */
+.page { width: 100%; max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; min-height: 0; flex: 1; }
+.page-head { padding: 8px 0 18px; }
+.page-head h2 { font-weight: 400; font-size: 30px; margin: 14px 0 6px; }
+.page-head p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.45; }
+@media (min-width: 900px) { .page-head .back { display: none; } .page-head h2 { margin-top: 6px; } }
+.search { display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--card); margin-bottom: 12px; }
+.search input { flex: 1; background: none; border: 0; outline: none; color: var(--text); font: inherit; font-size: 14px; user-select: text; }
+.tabs { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.tabs button { height: 32px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); font-size: 13px; color: #cfd0dc; }
+.tabs button.on { border-color: rgba(169,155,255,.6); background: rgba(143,125,255,.18); color: #fff; }
+.cards { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; padding-bottom: 22px; min-height: 0; }
+.card { width: 100%; display: grid; grid-template-columns: 42px 1fr 20px; align-items: center; gap: 12px; padding: 13px 14px 13px 12px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--card); text-align: left; }
+.card:hover { background: var(--card-hi); border-color: var(--line-hi); }
+.card .ic { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.05); border: 1px solid var(--line); }
+.card b { display: block; font-weight: 500; font-size: 15px; }
+.card span { display: block; color: var(--muted); font-size: 13px; line-height: 1.4; margin-top: 2px; }
+.card .chev { color: var(--muted); }
+.card .detail { display: none; grid-column: 2 / 4; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.card.open .detail { display: block; }
+.section-title { margin: 14px 2px 8px; color: var(--muted); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; }
+.mem { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--card); }
+.mem b { font-weight: 500; font-size: 14px; user-select: text; }
+.mem small { grid-column: 1 / 2; color: var(--muted); font-size: 11.5px; }
+.mem .acts { grid-row: 1 / 3; grid-column: 2; display: flex; gap: 6px; }
+.mem textarea { width: 100%; min-height: 44px; border-radius: 10px; border: 1px solid var(--line-hi); background: #08090f; color: var(--text); font: inherit; font-size: 13.5px; padding: 8px 10px; resize: vertical; user-select: text; }
+
+#profile .who { display: grid; justify-items: center; gap: 8px; padding: 0 0 20px; }
+#orb-profile { width: 130px; height: 130px; }
+.who h3 { margin: 0; font-weight: 400; font-size: 24px; display: flex; align-items: center; gap: 8px; }
+.who p { margin: 0; color: var(--muted); font-size: 13.5px; }
+.badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 6px; background: rgba(169,155,255,.22); color: #cfc7ff; }
+.settings { border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); overflow: hidden; margin-bottom: 14px; }
+.set { display: grid; grid-template-columns: 26px 1fr auto; align-items: center; gap: 12px; padding: 0 16px; height: 52px; width: 100%; text-align: left; border-top: 1px solid var(--line); font-size: 14.5px; }
+.set:first-child { border-top: 0; }
+.set em { font-style: normal; color: var(--muted); font-size: 13px; display: flex; align-items: center; gap: 6px; }
+.set em.ok { color: var(--good); }
+.switch { width: 44px; height: 26px; border-radius: 999px; background: #2a2b36; position: relative; transition: background .2s; }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform .2s; }
+.switch.on { background: linear-gradient(90deg, #8f7dff, #b3a6ff); }
+.switch.on::after { transform: translateX(18px); }
+.scroll { overflow-y: auto; min-height: 0; padding-bottom: 22px; }
+
+/* ----- phone menu, sheet, toast ----- */
+#scrim { position: absolute; inset: 0; background: rgba(0,0,0,.55); opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 20; }
+#scrim.show { opacity: 1; pointer-events: auto; }
+#menu { position: absolute; top: 0; bottom: 0; left: 0; width: 82%; max-width: 330px; z-index: 21; padding: 30px 20px 24px; background: linear-gradient(180deg, #0b0c14, #07080d); border-right: 1px solid var(--line); transform: translateX(-102%); transition: transform .28s ease; display: flex; flex-direction: column; }
+#menu.show { transform: none; }
+#orb-menu { width: 76px; height: 76px; margin-left: 6px; }
+#menu h3 { font-weight: 400; font-size: 23px; margin: 14px 0 4px; }
+#menu > p { margin: 0 0 22px; color: var(--muted); font-size: 14.5px; }
+.menu-row { display: grid; grid-template-columns: 24px 1fr 18px; align-items: center; gap: 14px; height: 52px; padding: 0 8px; border-top: 1px solid var(--line); text-align: left; font-size: 15px; }
+.menu-row:last-of-type { border-bottom: 1px solid var(--line); }
+.menu-row .chev { color: var(--muted); }
+.model-card { margin-top: 22px; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--line); background: var(--card); }
+.model-card b { display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 14px; }
+.model-card b i { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+.model-card span { display: block; margin-top: 6px; color: var(--muted); font-size: 12.5px; line-height: 1.45; }
+.quit { margin-top: auto; display: flex; align-items: center; gap: 14px; height: 48px; padding: 0 8px; font-size: 15px; }
+
+#sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 31; max-height: 82%; display: flex; flex-direction: column; padding: 10px 22px 22px; border-radius: 22px 22px 0 0; background: #0c0d15; border-top: 1px solid var(--line-hi); transform: translateY(102%); transition: transform .28s ease; }
+#sheet.show { transform: none; }
+@media (min-width: 900px) { #sheet { left: 50%; right: auto; width: 640px; margin-left: -320px; top: 50%; bottom: auto; max-height: 80%; border-radius: 22px; border: 1px solid var(--line-hi); transform: translateY(-46%) scale(.98); opacity: 0; pointer-events: none; transition: transform .22s ease, opacity .22s ease; } #sheet.show { transform: translateY(-50%); opacity: 1; pointer-events: auto; } #sheet .grab { display: none; } }
+#sheet .grab { width: 40px; height: 4px; border-radius: 4px; background: #2c2d39; margin: 0 auto 12px; }
+#sheet h4 { margin: 6px 0 12px; font-weight: 500; font-size: 17px; display: flex; justify-content: space-between; align-items: center; }
+#sheet .body { overflow-y: auto; min-height: 0; user-select: text; }
+#sheet .body p { color: var(--muted); font-size: 14px; line-height: 1.5; margin: 0 0 10px; }
+.proj, .task-row { width: 100%; display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 12px 14px; margin-bottom: 8px; border-radius: 14px; border: 1px solid var(--line); background: var(--card); text-align: left; }
+.proj b, .task-row b { font-weight: 500; }
+.proj span, .task-row span { grid-column: 1 / 3; color: var(--muted); font-size: 12px; word-break: break-word; }
+.task-row em { font-style: normal; font-size: 12px; color: var(--muted); }
+.task-row em.succeeded { color: var(--good); } .task-row em.failed { color: var(--bad); } .task-row em.running, .task-row em.queued { color: var(--accent); }
+.path-row { display: flex; gap: 8px; margin: 6px 0 4px; }
+.path-row input { flex: 1; min-width: 0; height: 40px; border-radius: 12px; border: 1px solid var(--line-hi); background: #08090f; color: var(--text); padding: 0 12px; font: inherit; font-size: 13.5px; user-select: text; }
+.events { margin: 8px 0 0; padding: 0; list-style: none; font-size: 12.5px; color: var(--muted); }
+.events li { padding: 3px 0; }
+.mail-view { white-space: pre-wrap; font-size: 14px; line-height: 1.5; color: var(--text); background: #0b0d14; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.mail-head { color: var(--muted); font-size: 13px; margin: 0 0 4px; }
+#toast { position: absolute; top: 16px; left: 50%; transform: translate(-50%, -160%); z-index: 40; max-width: 88%; padding: 10px 16px; border-radius: 14px; background: #171824; border: 1px solid var(--line-hi); font-size: 13.5px; line-height: 1.4; color: var(--text); box-shadow: 0 10px 30px rgba(0,0,0,.5); transition: transform .3s ease, visibility .3s; visibility: hidden; }
+#toast.show { transform: translate(-50%, 0); visibility: visible; }
+@media (prefers-reduced-motion: reduce) { .screen.active { animation: none; } }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- sidebar (wide window) -->
+<aside id="sidebar" aria-label="Navigation">
+  <div class="brand"><canvas id="orb-brand"></canvas><div><b>Veronica</b><small>Your intelligent companion</small></div></div>
+  <nav class="side-nav">
+    <button data-go="home" class="on"><svg viewBox="0 0 24 24"><path d="M20 12a7.5 7.5 0 0 1-11 6.6L4 20l1.4-4.6A7.5 7.5 0 1 1 20 12z"/></svg>Chat</button>
+    <button data-go="tools"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/></svg>Tools</button>
+    <button data-go="memory"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.6-3 8.3-7 10-4-1.7-7-5.4-7-10V6z"/></svg>Memory</button>
+    <button data-go="projects"><svg viewBox="0 0 24 24"><path d="M12 3 3 8l9 5 9-5zM3 13l9 5 9-5"/></svg>Projects</button>
+    <button data-act="research"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>Research</button>
+    <div style="height:14px"></div>
+    <button data-go="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14.2 3h-4.4l-.4 2.6a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 2 1.2l.4 2.6h4.4l.4-2.6a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg>Settings</button>
+  </nav>
+  <div class="side-gap"></div>
+  <button class="side-card" data-go="profile"><span class="avatar">V</span><span><b>Veronica</b><small id="side-status">Claude Opus 5.5</small></span></button>
+</aside>
+
+<main id="main">
+
+<!-- splash -->
+<section class="screen active" id="splash" aria-label="Starting">
+  <canvas id="orb-splash"></canvas>
+  <h1>Veronica</h1>
+  <p>Your intelligent companion</p>
+  <div class="bar"></div>
+</section>
+
+<!-- home -->
+<section class="screen" id="home" aria-label="Chat">
+  <div class="top phone-only">
+    <button class="icon-btn" id="open-menu" aria-label="Menu"><span class="dots4"><i></i><i></i><i></i><i></i></span></button>
+    <button class="icon-btn ring" data-go="profile" aria-label="Profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.9-3.6 3.7-5.4 7-5.4s6.1 1.8 7 5.4"/></svg></button>
+  </div>
+  <div class="home-main" id="home-main">
+    <div id="hero">
+      <div class="greet"><h1>Hey,<br>I’m <em>Veronica.</em></h1><p>I’m here to help you think clearer, move faster, and get more done.</p></div>
+      <div class="hero-orb"><canvas id="orb-hero" role="button" aria-label="Talk to Veronica" tabindex="0"></canvas></div>
+      <div class="desk-greet"><h1>Hey, I’m Veronica.</h1><p>How can I help you today?</p></div>
+      <div class="chips">
+        <button class="chip" data-chip="What's on my calendar today and this week?"><span class="ci" style="background:rgba(56,189,248,.16);color:#7dd3fc"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></span>Plan my day</button>
+        <button class="chip" data-chip="Any important unread emails?"><span class="ci" style="background:rgba(240,171,252,.16);color:#f5b8fb"><svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4 7l8 6 8-6"/></svg></span>Check my email</button>
+        <button class="chip" data-act="research"><span class="ci" style="background:rgba(143,125,255,.2);color:#c9c0ff"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg></span>Research a topic</button>
+        <button class="chip" data-chip="Find and fix the bug: "><span class="ci" style="background:rgba(110,231,183,.14);color:#86efac"><svg viewBox="0 0 24 24"><path d="M13 3 5 13.5h6L10 21l8-10.5h-6z"/></svg></span>Fix a bug</button>
+        <button class="chip" data-go="tools"><span class="ci" style="color:#cfd0dc"><svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg></span>More</button>
+      </div>
+    </div>
+    <div id="thread" aria-live="polite"></div>
+    <button class="project-pill" id="project-pill" aria-label="Choose a project"><span class="dot"></span><span id="project-label">No project open</span></button>
+    <div class="changes" id="changes"><div class="row"><div><strong id="changes-title"></strong><small id="changes-sub"></small></div><div class="acts"><button class="pill-btn" id="changes-view">View</button><button class="pill-btn" id="changes-undo">Undo</button><button class="pill-btn primary" id="changes-keep">Keep</button></div></div></div>
+    <div class="changes" id="draft"><div class="row"><div><strong id="draft-title"></strong><small id="draft-sub"></small></div><div class="acts"><button class="pill-btn" id="draft-view">View</button><button class="pill-btn" id="draft-discard">Discard</button><button class="pill-btn primary" id="draft-send">Send</button></div></div></div>
+    <form class="ask" id="ask" autocomplete="off">
+      <button type="button" class="round" id="ask-plus" aria-label="Open a project"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+      <input id="ask-input" placeholder="Message Veronica..." aria-label="Message Veronica">
+      <button type="button" class="round wave" id="ask-voice" aria-label="Voice mode"><svg viewBox="0 0 24 24"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"/></svg></button>
+      <button type="submit" class="round send" id="ask-send" aria-label="Send"><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button>
+    </form>
+  </div>
+  <nav class="nav phone-only">
+    <button class="on" data-go="home"><span class="home-dot"></span>Home</button>
+    <button data-go="tools"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/></svg>Tools</button>
+    <button data-go="memory"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v4h-4"/></svg>Memory</button>
+    <button data-go="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.9-3.6 3.7-5.4 7-5.4s6.1 1.8 7 5.4"/></svg>Profile</button>
+  </nav>
+</section>
+
+<!-- voice mode -->
+<section class="screen" id="voice" aria-label="Voice mode">
+  <div class="top"><button class="icon-btn ring" id="voice-close" aria-label="Close voice mode"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="voice-stage"><canvas id="orb-voice" role="button" aria-label="Tap to stop" tabindex="0"></canvas></div>
+  <p id="voice-caption" aria-live="polite"></p>
+  <p id="voice-status">Listening...</p>
+  <p id="voice-sub">Tap to stop</p>
+  <button class="wave-btn" id="wave-btn" aria-label="Pause listening"><svg viewBox="0 0 24 24"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"/></svg></button>
+</section>
+
+<!-- tools -->
+<section class="screen" id="tools" aria-label="Tools">
+  <div class="page">
+    <div class="page-head"><button class="icon-btn back" data-go="home" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h2>Tools</h2><p>Give Veronica the right tools for the job.</p></div>
+    <label class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg><input id="tool-search" placeholder="Search tools..." aria-label="Search tools"></label>
+    <div class="tabs" id="tool-tabs"><button class="on" data-tab="all">All</button><button data-tab="work">Code</button><button data-tab="life">Email &amp; Calendar</button><button data-tab="research">Research</button></div>
+    <div class="cards" id="tool-cards">
+      <button class="card" data-act="research" data-kind="research"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg></span><span><b>Research Mode</b><span>Deep, structured research with sources, in the background.</span></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+      <button class="card" data-expand data-kind="research"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.5 3.5 5.3 3.5 8.5s-1.1 6-3.5 8.5c-2.4-2.5-3.5-5.3-3.5-8.5s1.1-6 3.5-8.5z"/></svg></span><span><b>Web Search</b><span>Find current information on the web (Brave Search).</span></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg><span class="detail">Used by research tasks. Pages are read as plain text; nothing on this PC or your home network is ever fetched.</span></button>
+      <button class="card" data-act="projects" data-kind="work"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg></span><span><b>Projects</b><span>Open a folder for Veronica to work in.</span></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+      <button class="card" data-expand data-kind="work"><span class="ic"><svg viewBox="0 0 24 24"><path d="M9 8l-4 4 4 4M15 8l4 4-4 4"/></svg></span><span><b>Code Reader &amp; Editor</b><span>Read, search and change your code, in your style.</span></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg><span class="detail">Works inside the open project only. Every change waits for you to keep or undo; secret files are never opened.</span></button>
+      <button class="card" data-expand data-kind="work"><span class="ic"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"/></svg></span><span><b>Test Runner</b><span>Checks every change with the project's own tests.</span></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg><span class="detail">Veronica's program runs the tests itself. Failing changes go back for fixing twice, then are undone.</span></button>
+      <button class="card" data-expand data-kind="life"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4 7l8 6 8-6"/></svg></span><span><b>Email</b><span>Search and read your Gmail; draft replies.</span></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg><span class="detail">Nothing is marked as read. Veronica only drafts: an email is sent when you press Send or say “send it”, and never twice.</span></button>
+      <button class="card" data-expand data-kind="life"><span class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></span><span><b>Calendar</b><span>What's coming up in your Google Calendar.</span></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg><span class="detail">Read only: Veronica can tell you your schedule but cannot add or change events.</span></button>
+      <button class="card" data-expand data-kind="life"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"/></svg></span><span><b>Voice</b><span>Talk to Veronica and hear the answer.</span></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg><span class="detail">Your speech is understood on this PC, never recorded. Replies are spoken by <span id="voice-provider" style="display:inline;margin:0">Fish Audio</span>.</span></button>
+    </div>
+  </div>
+</section>
+
+<!-- memory -->
+<section class="screen" id="memory" aria-label="Memory">
+  <div class="page">
+    <div class="page-head"><button class="icon-btn back" data-go="home" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h2>Memory</h2><p>Veronica remembers what matters to you: only what you tell her, and you can change or delete it.</p></div>
+    <div class="tabs" id="mem-tabs"><button class="on" data-tab="all">All</button><button data-tab="preference">Preferences</button><button data-tab="fact">Facts</button></div>
+    <div class="cards">
+      <div id="mem-list"></div>
+      <div class="section-title">Right now</div>
+      <button class="card" data-act="conversation"><span class="ic"><svg viewBox="0 0 24 24"><path d="M20 12a7.5 7.5 0 0 1-11 6.6L4 20l1.4-4.6A7.5 7.5 0 1 1 20 12z"/></svg></span><span><b>This Conversation</b><span id="mem-chat">Nothing said yet.</span></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+      <button class="card" data-act="changes"><span class="ic"><svg viewBox="0 0 24 24"><path d="M8 5v9M4.5 9.5h7M13 17h7"/></svg></span><span><b>Waiting Changes</b><span id="mem-changes">No changes waiting.</span></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+      <button class="card" data-act="new"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span><b>Start Fresh</b><span>A new conversation. Your memories, project and changes stay.</span></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+    </div>
+  </div>
+</section>
+
+<!-- projects -->
+<section class="screen" id="projects" aria-label="Projects">
+  <div class="page">
+    <div class="page-head"><button class="icon-btn back" data-go="home" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h2>Projects</h2><p>The folder Veronica works in, and your saved projects.</p></div>
+    <div class="scroll" id="projects-body"></div>
+  </div>
+</section>
+
+<!-- profile / settings -->
+<section class="screen" id="profile" aria-label="Settings">
+  <div class="page scroll">
+    <div class="page-head"><button class="icon-btn back" data-go="home" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h2>Profile</h2><p>Manage your Veronica experience.</p></div>
+    <div class="who"><canvas id="orb-profile"></canvas><h3>Veronica <span class="badge">Opus 5.5</span></h3><p>Always on your side.</p></div>
+    <div class="settings">
+      <div class="set"><svg viewBox="0 0 24 24"><path d="M12 3l9 9-9 9-9-9z"/></svg>Appearance<em>Dark</em></div>
+      <div class="set"><svg viewBox="0 0 24 24"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"/></svg>Voice<em id="voice-name">Fish Audio</em></div>
+      <button class="set" id="listen-row" aria-pressed="true"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>Listen for “Veronica”<span class="switch on" id="listen-switch"></span></button>
+      <div class="set"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.5 3.5 5.3 3.5 8.5s-1.1 6-3.5 8.5c-2.4-2.5-3.5-5.3-3.5-8.5s1.1-6 3.5-8.5z"/></svg>Language<em>English</em></div>
+    </div>
+    <div class="settings">
+      <div class="set"><svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4 7l8 6 8-6"/></svg>Gmail<em id="conn-gmail">…</em></div>
+      <div class="set"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Google Calendar<em id="conn-calendar">…</em></div>
+      <div class="set"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>Web search<em id="conn-search">…</em></div>
+      <button class="set" id="about-row"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/></svg>About<em><svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M9 6l6 6-6 6"/></svg></em></button>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- right rail (wide window) -->
+<aside id="rail" aria-label="Suggestions">
+  <div class="rail-box"><h5>Suggested for you</h5><div id="suggest"></div></div>
+  <div class="rail-box"><h5>Recent research <button data-act="research">See all</button></h5><div id="recent"><div class="empty-note">No research yet. Ask Veronica to research a topic, or use Research Mode.</div></div></div>
+</aside>
+
+</div>
+
+<!-- phone side menu -->
+<div id="scrim"></div>
+<aside id="menu" aria-label="Menu">
+  <canvas id="orb-menu"></canvas>
+  <h3>Veronica</h3>
+  <p>Always on your side.</p>
+  <button class="menu-row" data-menu="new"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New Chat<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+  <button class="menu-row" data-menu="voice"><svg viewBox="0 0 24 24"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"/></svg>Voice Mode<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+  <button class="menu-row" data-menu="research"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>Research<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+  <button class="menu-row" data-menu="tools"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/></svg>Tools<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+  <button class="menu-row" data-menu="memory"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/></svg>Memory<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+  <button class="menu-row" data-menu="projects"><svg viewBox="0 0 24 24"><path d="M12 3 3 8l9 5 9-5zM3 13l9 5 9-5"/></svg>Projects<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+  <button class="menu-row" data-menu="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14.2 3h-4.4l-.4 2.6a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 2 1.2l.4 2.6h4.4l.4-2.6a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg>Settings<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+  <div class="model-card"><b><i></i>Claude Opus 5.5</b><span>Deep reasoning on every request. Declined requests retry on a fallback model.</span></div>
+  <button class="quit" id="quit"><svg viewBox="0 0 24 24"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 16l-4-4 4-4M6 12h10"/></svg>Quit Veronica</button>
+</aside>
+
+<div id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title"><div class="grab"></div><h4><span id="sheet-title"></span><button class="icon-btn" id="sheet-close" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h4><div class="body" id="sheet-body"></div></div>
+<div id="toast" role="status"></div>
+
+<script>
+'use strict';
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+
+const S = {
+  screen: 'splash', state: 'loading', level: 0, levelS: 0, amp: 0, ampS: 0,
+  voiceMode: false, paused: false, hearing: null, listenForName: true,
+  status: {project: null, files: [], tests: null, diff: '', draft: null}, messages: 0,
+  info: {tasks: [], unread: undefined, events_today: undefined}, memories: [], memTab: 'all', toolTab: 'all',
+};
+let API = null;
+const call = (name, ...args) => { try { return API && API[name] ? Promise.resolve(API[name](...args)) : Promise.resolve(null); } catch (e) { return Promise.resolve(null); } };
+
+/* ------------------------------------------------------------------ the orb */
+const PALETTE = [[124, 108, 255], [56, 189, 248], [34, 211, 238], [240, 171, 252], [167, 139, 250]];
+class Orb {
+  constructor(canvas, opts) {
+    this.c = canvas; this.ctx = canvas.getContext('2d'); this.o = Object.assign({scale: 0.3, particles: 0, rings: false, gain: 1}, opts);
+    this.parts = [
+      {r: 1.55, a: 3.6, s: 0.22, size: 0.055, col: '#60a5fa'},
+      {r: 1.42, a: 0.5, s: -0.16, size: 0.075, col: '#f9a8d4'},
+      {r: 1.72, a: 2.2, s: 0.12, size: 0.045, col: '#a78bfa'},
+      {r: 1.30, a: 5.0, s: -0.27, size: 0.035, col: '#c4b5fd'},
+      {r: 1.85, a: 1.2, s: 0.09, size: 0.03, col: '#93c5fd'},
+    ].slice(0, this.o.particles);
+    this.fit();
+    this.clock = 0; this.last = null; this.e = 0.2; this.sw = 1;
+  }
+  fit() {
+    const r = this.c.getBoundingClientRect(), d = window.devicePixelRatio || 1;
+    if (!r.width) return false;
+    const w = Math.round(r.width * d), h = Math.round(r.height * d);
+    if (this.c.width !== w || this.c.height !== h) { this.c.width = w; this.c.height = h; }
+    return true;
+  }
+  draw(t, e, swirl) {
+    // Motion runs on its own clock: speed changes make it go faster or slower smoothly, never jump.
+    const dt = this.last === null ? 0 : Math.min(0.1, Math.max(0, t - this.last)); this.last = t;
+    this.e += (e - this.e) * Math.min(1, dt * 5);
+    this.sw += (swirl - this.sw) * Math.min(1, dt * 1.5);
+    this.clock += dt * this.sw;
+    e = this.e; swirl = this.sw; const T = this.clock;
+    if (!this.c.offsetParent && this.c.id !== 'orb-menu') return;
+    if (!this.fit()) return;
+    const ctx = this.ctx, W = this.c.width, H = this.c.height, cx = W / 2, cy = H / 2;
+    const R = Math.min(W, H) * this.o.scale * (1 + 0.07 * e);
+    ctx.clearRect(0, 0, W, H);
+    // outer glow
+    const glow = ctx.createRadialGradient(cx, cy, R * 0.7, cx, cy, Math.max(R * 0.75, Math.min(R * 1.9, Math.min(W, H) / 2)));
+    glow.addColorStop(0, `rgba(118, 104, 255, ${0.16 + 0.22 * e})`);
+    glow.addColorStop(1, 'rgba(118, 104, 255, 0)');
+    ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
+    if (this.o.rings) {
+      ctx.lineWidth = Math.max(1, W / 500);
+      const room = Math.min(W, H) / 2 - 3;
+      [1.32, 1.7, 2.05].forEach((k, i) => {
+        if (R * k > room) return;
+        ctx.strokeStyle = `rgba(255, 255, 255, ${0.06 - i * 0.013 + 0.02 * e})`;
+        ctx.beginPath(); ctx.arc(cx, cy, R * k, 0, Math.PI * 2); ctx.stroke();
+      });
+    }
+    if (this.o.orbits) {   // faint tilted orbits behind the bubble
+      ctx.save(); ctx.lineWidth = Math.max(1, W / 650);
+      [[2.05, 0.6, -0.42, 0.2], [2.4, 0.46, 0.34, 0.13]].forEach(([rx, ry, rot, a]) => {
+        if (R * rx > W / 2 - 2 || R * ry > H / 2 - 2) return;
+        const g = ctx.createLinearGradient(cx - R * rx, cy, cx + R * rx, cy);
+        g.addColorStop(0, 'rgba(167,139,250,0)'); g.addColorStop(0.5, `rgba(196,181,253,${a + 0.1 * e})`); g.addColorStop(1, 'rgba(56,189,248,0)');
+        ctx.strokeStyle = g; ctx.beginPath(); ctx.ellipse(cx, cy, R * rx, R * ry, rot + T * 0.015, 0, Math.PI * 2); ctx.stroke();
+      });
+      ctx.restore();
+    }
+    // the sphere
+    ctx.save();
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.clip();
+    const base = ctx.createRadialGradient(cx - R * 0.25, cy - R * 0.3, R * 0.05, cx, cy, R);
+    base.addColorStop(0, '#20235a'); base.addColorStop(0.55, '#0c0e2c'); base.addColorStop(1, '#1a1f55');
+    ctx.fillStyle = base; ctx.fillRect(cx - R, cy - R, 2 * R, 2 * R);
+    ctx.globalCompositeOperation = 'lighter';
+    const sp = 0.35;
+    PALETTE.forEach((col, i) => {
+      const x = cx + R * 0.48 * Math.sin(T * sp * (0.7 + i * 0.23) + i * 1.9);
+      const y = cy + R * 0.42 * Math.cos(T * sp * (0.6 + i * 0.17) + i * 2.7) + R * 0.12;
+      const rr = R * (0.55 + 0.12 * Math.sin(t * 0.8 + i));
+      const g = ctx.createRadialGradient(x, y, 0, x, y, rr);
+      const a = (0.30 + 0.38 * e) * (i === 3 ? 0.75 : 1);
+      g.addColorStop(0, `rgba(${col}, ${a})`); g.addColorStop(1, `rgba(${col}, 0)`);
+      ctx.fillStyle = g; ctx.fillRect(cx - R, cy - R, 2 * R, 2 * R);
+    });
+    // an iridescent film low in the bubble (pink into teal)
+    const lens = ctx.createRadialGradient(cx - R * 0.15, cy + R * 0.62, 0, cx - R * 0.15, cy + R * 0.62, R * 0.75);
+    lens.addColorStop(0, `rgba(244, 164, 220, ${0.30 + 0.25 * e})`);
+    lens.addColorStop(0.45, `rgba(34, 211, 238, ${0.16 + 0.18 * e})`);
+    lens.addColorStop(1, 'rgba(34, 211, 238, 0)');
+    ctx.fillStyle = lens; ctx.fillRect(cx - R, cy - R, 2 * R, 2 * R);
+    // soft silk ribbons, curved like the film of a bubble
+    ctx.save();
+    ctx.filter = `blur(${Math.max(1, R * 0.045)}px)`;
+    for (let k = 0; k < 3; k++) {
+      const ph = T * sp * 1.4 + k * 2.1;
+      const y0 = cy + R * (0.05 + 0.25 * Math.sin(ph)), y1 = cy + R * (0.5 + 0.18 * Math.cos(ph * 1.3));
+      const g = ctx.createLinearGradient(cx - R, cy, cx + R, cy);
+      g.addColorStop(0, 'rgba(56, 189, 248, 0)'); g.addColorStop(0.3, `rgba(56, 189, 248, ${0.22 + 0.25 * e})`);
+      g.addColorStop(0.62, `rgba(240, 171, 252, ${0.24 + 0.25 * e})`); g.addColorStop(1, 'rgba(167, 139, 250, 0)');
+      ctx.strokeStyle = g; ctx.lineWidth = R * (0.09 + 0.05 * k);
+      ctx.beginPath(); ctx.moveTo(cx - R * 1.05, y1);
+      ctx.bezierCurveTo(cx - R * 0.4, y0 + R * 0.3 * Math.sin(ph), cx + R * 0.35, y1 + R * 0.25, cx + R * 1.05, y0 - R * 0.2);
+      ctx.stroke();
+    }
+    ctx.restore();
+    ctx.globalCompositeOperation = 'source-over';
+    // glass rim and highlight
+    const rim = ctx.createRadialGradient(cx, cy, R * 0.74, cx, cy, R);
+    rim.addColorStop(0, 'rgba(200, 210, 255, 0)'); rim.addColorStop(0.82, 'rgba(190, 200, 255, 0.10)'); rim.addColorStop(1, 'rgba(225, 230, 255, 0.55)');
+    ctx.fillStyle = rim; ctx.fillRect(cx - R, cy - R, 2 * R, 2 * R);
+    if (ctx.createConicGradient) {
+      const cg = ctx.createConicGradient(T * 0.15, cx, cy);
+      ['rgba(56,189,248,.55)', 'rgba(167,139,250,.6)', 'rgba(240,171,252,.55)', 'rgba(34,211,238,.5)', 'rgba(56,189,248,.55)']
+        .forEach((c, i, all) => cg.addColorStop(i / (all.length - 1), c));
+      ctx.strokeStyle = cg; ctx.lineWidth = R * 0.05;
+      ctx.beginPath(); ctx.arc(cx, cy, R * 0.975, 0, Math.PI * 2); ctx.stroke();
+    }
+    const hl = ctx.createRadialGradient(cx - R * 0.38, cy - R * 0.45, 0, cx - R * 0.38, cy - R * 0.45, R * 0.55);
+    hl.addColorStop(0, 'rgba(255, 255, 255, 0.55)'); hl.addColorStop(0.35, 'rgba(255, 255, 255, 0.12)'); hl.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.fillStyle = hl; ctx.fillRect(cx - R, cy - R, 2 * R, 2 * R);
+    ctx.restore();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)'; ctx.lineWidth = Math.max(1, R * 0.012);
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke();
+    // the dots around it
+    this.parts.forEach(p => {
+      const a = p.a + T * p.s * 1.2;
+      const x = cx + Math.cos(a) * R * p.r, y = cy + Math.sin(a) * R * p.r * 0.92;
+      const s = Math.max(2, R * p.size * (1 + 0.25 * e));
+      const g = ctx.createRadialGradient(x, y, 0, x, y, s * 2.6);
+      g.addColorStop(0, p.col); g.addColorStop(0.38, p.col + 'cc'); g.addColorStop(0.42, p.col + '33'); g.addColorStop(1, p.col + '00');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, s * 2.6, 0, Math.PI * 2); ctx.fill();
+    });
+  }
+}
+
+const orbs = {
+  splash: new Orb($('#orb-splash'), {scale: 0.25, particles: 4, orbits: true}),
+  hero: new Orb($('#orb-hero'), {scale: 0.25, particles: 4, orbits: true}),
+  voice: new Orb($('#orb-voice'), {scale: 0.22, particles: 4, rings: true}),
+  brand: new Orb($('#orb-brand'), {scale: 0.4, particles: 0}),
+  menu: new Orb($('#orb-menu'), {scale: 0.36, particles: 1}),
+  profile: new Orb($('#orb-profile'), {scale: 0.34, particles: 2}),
+};
+
+let analyser = null, freq = null;
+function frame(ms) {
+  const t = ms / 1000;
+  S.levelS += (S.level - S.levelS) * 0.25; S.level *= 0.92;
+  if (analyser) {
+    analyser.getByteFrequencyData(freq);
+    let sum = 0; for (let i = 2; i < 40; i++) sum += freq[i];
+    S.amp = Math.min(1, sum / (38 * 255) * 2.2);
+  } else S.amp *= 0.9;
+  S.ampS += (S.amp - S.ampS) * 0.35;
+  let e = 0.2, swirl = 1;
+  switch (S.state) {
+    case 'loading': e = 0.15 + 0.08 * Math.sin(t * 1.6); break;
+    case 'idle': e = 0.18 + 0.3 * S.levelS; break;
+    case 'off': case 'paused': e = 0.08; swirl = 0.5; break;
+    case 'listening': e = 0.22 + 0.55 * S.levelS; swirl = 1 + 0.4 * S.levelS; break;
+    case 'thinking': e = 0.4 + 0.08 * Math.sin(t * 3); swirl = 2; break;
+    case 'speaking': e = 0.28 + 0.65 * S.ampS; swirl = 1.2 + 0.4 * S.ampS; break;
+  }
+  e = Math.min(1.2, e);
+  orbs.splash.draw(t, 0.25 + 0.08 * Math.sin(t * 1.5), 1);
+  orbs.hero.draw(t, e, swirl);
+  orbs.voice.draw(t, e, swirl);
+  orbs.brand.draw(t, Math.max(0.2, e * 0.8), swirl);
+  if ($('#menu').classList.contains('show')) orbs.menu.draw(t, 0.25, 1);
+  orbs.profile.draw(t, 0.22, 1);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ------------------------------------------------------------- navigation */
+function go(name) {
+  closeMenu();
+  $$('.screen').forEach(el => el.classList.toggle('active', el.id === name));
+  $$('.nav button, .side-nav button').forEach(b => b.classList.toggle('on', b.dataset.go === (name === 'voice' ? 'home' : name)));
+  S.screen = name;
+  if (name === 'memory') loadMemories();
+  if (name === 'projects') renderProjects();
+}
+document.addEventListener('click', e => {
+  const target = e.target.closest('[data-go]');
+  if (target && !target.closest('#sheet-body')) { go(target.dataset.go); return; }
+  const act = e.target.closest('[data-act]');
+  if (act) doAct(act.dataset.act);
+});
+function doAct(a) {
+  if (a === 'research') researchSheet();
+  else if (a === 'projects') projectsSheet();
+  else if (a === 'conversation') go('home');
+  else if (a === 'changes') changesSheet();
+  else if (a === 'new') { newChat(); go('home'); }
+}
+function openMenu() { $('#menu').classList.add('show'); $('#scrim').classList.add('show'); }
+function closeMenu() { $('#menu').classList.remove('show'); if (!$('#sheet').classList.contains('show')) $('#scrim').classList.remove('show'); }
+$('#open-menu').addEventListener('click', openMenu);
+$('#scrim').addEventListener('click', () => { closeMenu(); closeSheet(); });
+$$('[data-menu]').forEach(b => b.addEventListener('click', () => {
+  const m = b.dataset.menu;
+  if (m === 'new') { newChat(); go('home'); }
+  else if (m === 'voice') enterVoice();
+  else if (m === 'research') { closeMenu(); researchSheet(); }
+  else go(m);
+}));
+$('#quit').addEventListener('click', () => call('quit'));
+
+/* ------------------------------------------------------------- voice mode */
+function enterVoice() { go('voice'); S.voiceMode = true; S.paused = false; call('voice_mode', true); renderVoice(); }
+function leaveVoice() { stopAudio(); S.voiceMode = false; call('voice_mode', false); go('home'); }
+function renderVoice() {
+  const st = $('#voice-status'), sub = $('#voice-sub'), btn = $('#wave-btn');
+  let a = 'Listening...', b = 'Tap to stop';
+  if (S.hearing === null) { a = 'Getting ready...'; b = 'Loading the speech model'; }
+  else if (S.hearing === false) { a = 'Microphone unavailable'; b = 'Type to Veronica instead'; }
+  else if (S.state === 'thinking') { a = 'Thinking...'; b = ''; }
+  else if (S.state === 'speaking') { a = 'Speaking...'; b = 'Tap to interrupt'; }
+  else if (S.state === 'paused') { a = 'Paused'; b = 'Tap to listen'; }
+  st.textContent = a; sub.textContent = b;
+  const off = S.state === 'paused' || S.hearing !== true;
+  btn.classList.toggle('off', off);
+  btn.setAttribute('aria-label', off ? 'Start listening' : 'Pause listening');
+  $('#orb-voice').setAttribute('aria-label', b || a);
+}
+function tapOrb() {
+  if (S.state === 'speaking') { stopAudio(); return; }
+  if (S.hearing !== true) return;
+  S.paused = S.state !== 'paused'; call('pause', S.paused);
+}
+$('#orb-voice').addEventListener('click', tapOrb);
+$('#wave-btn').addEventListener('click', tapOrb);
+$('#voice-close').addEventListener('click', leaveVoice);
+$('#orb-hero').addEventListener('click', enterVoice);
+$('#orb-hero').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') enterVoice(); });
+$('#ask-voice').addEventListener('click', enterVoice);
+
+/* ----------------------------------------------------------- her voice */
+let ctxAudio = null, current = null;
+async function speak(b64, mime) {
+  stopAudio(true);
+  const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  const url = URL.createObjectURL(new Blob([bytes], {type: mime}));
+  const audio = new Audio(url);
+  current = {audio, url};
+  try {
+    ctxAudio = ctxAudio || new AudioContext();
+    if (ctxAudio.state === 'suspended') await ctxAudio.resume();
+    if (ctxAudio.state === 'running') {
+      const src = ctxAudio.createMediaElementSource(audio);
+      analyser = ctxAudio.createAnalyser(); analyser.fftSize = 256; analyser.smoothingTimeConstant = 0.6;
+      freq = new Uint8Array(analyser.frequencyBinCount);
+      src.connect(analyser); analyser.connect(ctxAudio.destination);
+    }
+  } catch (e) { analyser = null; }
+  audio.onended = () => stopAudio();
+  audio.onerror = () => stopAudio();
+  setState('speaking');
+  try { await audio.play(); } catch (e) { notice('The voice could not play.'); stopAudio(); }
+}
+function stopAudio(quiet) {
+  if (!current) return;
+  const {audio, url} = current; current = null; analyser = null;
+  try { audio.pause(); } catch (e) {}
+  URL.revokeObjectURL(url);
+  if (S.state === 'speaking') setState('thinking');
+  if (!quiet) call('speech_done');
+}
+
+/* ------------------------------------------------------------- the thread */
+const format = text => esc(text).replace(/`([^`\n]+)`/g, '<code>$1</code>');
+function diffHtml(text) {
+  return esc(text).split('\n').map(l => {
+    if (l.startsWith('+') && !l.startsWith('+++')) return `<span class="add">${l}</span>`;
+    if (l.startsWith('-') && !l.startsWith('---')) return `<span class="del">${l}</span>`;
+    if (l.startsWith('@@')) return `<span class="hunk">${l}</span>`;
+    return l;
+  }).join('\n');
+}
+function addMessage(who, text, show) {
+  $('#home-main').classList.add('chatting');
+  const thread = $('#thread');
+  clearWorking();
+  const el = document.createElement('div');
+  el.className = 'msg ' + who;
+  if (who === 'veronica') {
+    el.innerHTML = `<span class="mini"></span><div>${format(text)}${show ? `<details class="more"><summary>Details</summary><pre class="code">${diffHtml(show)}</pre></details>` : ''}</div>`;
+  } else el.innerHTML = format(text);
+  thread.appendChild(el);
+  S.messages++;
+  setBusy(who === 'you');
+  if (who === 'you') showWorking('Thinking');
+  thread.scrollTop = thread.scrollHeight;
+  $('#voice-caption').textContent = text;
+}
+function setBusy(on) {
+  S.busy = on;
+  $$('#changes .pill-btn, #draft .pill-btn').forEach(b => { b.disabled = on; b.style.opacity = on ? '.45' : ''; });
+}
+function showWorking(text) {
+  let w = $('#working');
+  if (!w) { w = document.createElement('div'); w.id = 'working'; w.className = 'working'; w.innerHTML = '<i></i><i></i><i></i><span></span>'; $('#thread').appendChild(w); }
+  w.querySelector('span').textContent = text;
+  $('#thread').scrollTop = $('#thread').scrollHeight;
+}
+function clearWorking() { const w = $('#working'); if (w) w.remove(); }
+function newChat() {
+  $('#thread').innerHTML = ''; S.messages = 0; $('#home-main').classList.remove('chatting');
+  $('#voice-caption').textContent = '';
+  call('new_chat');
+}
+function send(text) {
+  text = (text || '').trim();
+  if (!text) return;
+  if (S.screen !== 'home') go('home');
+  addMessage('you', text);
+  call('send', text, S.status.draft ? S.status.draft.id : null);
+}
+$('#ask').addEventListener('submit', e => { e.preventDefault(); const i = $('#ask-input'); send(i.value); i.value = ''; });
+$('#ask-plus').addEventListener('click', projectsSheet);
+$('#project-pill').addEventListener('click', projectsSheet);
+$$('[data-chip]').forEach(b => b.addEventListener('click', () => {
+  const c = b.dataset.chip;
+  if (c.endsWith(': ')) { const i = $('#ask-input'); i.value = c; i.focus(); return; }
+  send(c);
+}));
+
+/* ------------------------------------------------------- changes & status */
+function renderStatus(st) {
+  S.status = Object.assign({files: [], draft: null}, st || S.status);
+  const s = S.status, files = s.files || [];
+  $('#project-pill').classList.toggle('open', !!s.project);
+  $('#project-label').innerHTML = s.project ? `Working in <b>${esc(s.project)}</b>` : 'No project open';
+  $('#changes').classList.toggle('show', files.length > 0);
+  if (files.length) {
+    $('#changes-title').textContent = `${files.length} file${files.length > 1 ? 's' : ''} changed`;
+    $('#changes-sub').textContent = s.tests === true ? 'Tests pass · waiting for you' : s.tests === false ? 'Tests fail' : 'No tests to check · waiting for you';
+  }
+  const d = s.draft;
+  $('#draft').classList.toggle('show', !!d);
+  if (d) { $('#draft-title').textContent = `Email to ${d.to.join(', ')}`; $('#draft-sub').textContent = `${d.subject} · not sent yet`; }
+  $('#mem-changes').textContent = files.length ? files.join(', ') : 'No changes waiting.';
+  $('#mem-chat').textContent = S.messages ? `${S.messages} message${S.messages > 1 ? 's' : ''} so far. Forgotten when Veronica closes, unless you ask her to remember something.` : 'Nothing said yet.';
+  renderSuggestions();
+}
+$('#changes-view').addEventListener('click', changesSheet);
+$('#changes-keep').addEventListener('click', () => { if (S.busy) return; addMessage('you', 'Keep it.'); call('keep'); });
+$('#changes-undo').addEventListener('click', () => { if (S.busy) return; addMessage('you', 'Undo it.'); call('undo'); });
+$('#draft-view').addEventListener('click', draftSheet);
+$('#draft-send').addEventListener('click', () => { const d = S.status.draft; if (!d || S.busy) return; addMessage('you', 'Send it.'); call('send_email', d.id); });
+$('#draft-discard').addEventListener('click', () => { const d = S.status.draft; if (!d || S.busy) return; addMessage('you', 'Discard the email.'); call('discard_email', d.id); });
+
+/* ------------------------------------------------- suggestions and recent */
+const ICON = {
+  cal: '<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>',
+  mail: '<svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4 7l8 6 8-6"/></svg>',
+  search: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>',
+  code: '<svg viewBox="0 0 24 24"><path d="M9 8l-4 4 4 4M15 8l4 4-4 4"/></svg>',
+  chev: '<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>',
+};
+function renderSuggestions() {
+  const s = S.status, i = S.info, items = [];
+  if ((s.files || []).length) items.push(['changes', ICON.code, 'Review your changes', `${s.files.length} file${s.files.length > 1 ? 's' : ''} waiting in ${s.project}`]);
+  if (s.draft) items.push(['draft', ICON.mail, 'An email is ready', `To ${s.draft.to.join(', ')}`]);
+  if (s.project && !(s.files || []).length) items.push(['continue', ICON.code, 'Continue your project', s.project]);
+  if (typeof i.events_today === 'number') items.push(['schedule', ICON.cal, 'Check your schedule', i.events_today ? `You have ${i.events_today} event${i.events_today > 1 ? 's' : ''} left today` : 'Nothing else today']);
+  if (typeof i.unread === 'number') items.push(['email', ICON.mail, 'Check your email', `${i.unread.toLocaleString()} unread`]);
+  items.push(['research', ICON.search, 'Research mode', 'Deep dive on your topic']);
+  $('#suggest').innerHTML = items.slice(0, 5).map(([k, ic, b, sub]) => `<button class="sugg" data-sugg="${k}"><span class="ic">${ic}</span><span><b>${esc(b)}</b><span>${esc(sub)}</span></span>${ICON.chev}</button>`).join('');
+  $$('[data-sugg]').forEach(b => b.addEventListener('click', () => {
+    const k = b.dataset.sugg;
+    if (k === 'changes') changesSheet();
+    else if (k === 'draft') draftSheet();
+    else if (k === 'continue') { go('home'); const inp = $('#ask-input'); inp.value = `Let's continue with ${S.status.project}: `; inp.focus(); }
+    else if (k === 'schedule') send("What's on my calendar for the rest of today?");
+    else if (k === 'email') send('Any important unread emails?');
+    else if (k === 'research') researchSheet();
+  }));
+  const tasks = (i.tasks || []).slice(0, 6);
+  $('#recent').innerHTML = tasks.length ? tasks.map(t => `<button class="recent" data-task="${esc(t.id)}"><span class="st ${esc(t.status)}"></span><span>${esc(t.title)}</span></button>`).join('') : '<div class="empty-note">No research yet. Ask Veronica to research a topic, or use Research Mode.</div>';
+  $$('#recent [data-task]').forEach(b => b.addEventListener('click', () => taskSheet(b.dataset.task)));
+}
+
+/* ------------------------------------------------------------------ sheets */
+function openSheet(title, html) {
+  $('#sheet-title').textContent = title; $('#sheet-body').innerHTML = html;
+  $('#sheet').classList.add('show'); $('#scrim').classList.add('show');
+}
+function closeSheet() { $('#sheet').classList.remove('show'); if (!$('#menu').classList.contains('show')) $('#scrim').classList.remove('show'); S.sheetTask = null; }
+$('#sheet-close').addEventListener('click', closeSheet);
+async function projectRows() {
+  const list = (await call('projects')) || [];
+  return (list.map(p => `<button class="proj" data-name="${esc(p.name)}"><b>${esc(p.name)}</b><span>${esc(p.folder)}</span></button>`).join('') || '<p>No saved projects yet. Add them to projects.json in Veronica\'s folder, or type a folder below.</p>') +
+    `<div class="path-row"><input id="path-input" placeholder="C:\\Users\\you\\projects\\my-app" aria-label="Folder path"><button class="pill-btn primary" id="path-open">Open</button></div>`;
+}
+function wireProjects(root, after) {
+  $$('.proj', root).forEach(b => b.addEventListener('click', () => { call('open_project', b.dataset.name); after(); }));
+  const openPath = () => { const v = $('#path-input', root).value.trim(); if (v) { call('open_project', v); after(); } };
+  $('#path-open', root).addEventListener('click', openPath);
+  $('#path-input', root).addEventListener('keydown', e => { if (e.key === 'Enter') openPath(); });
+}
+async function projectsSheet() {
+  closeMenu();
+  openSheet('Open a project', await projectRows());
+  wireProjects($('#sheet-body'), closeSheet);
+}
+async function renderProjects() {
+  const s = S.status;
+  const now = s.project ? `<div class="settings"><div class="set"><svg viewBox="0 0 24 24"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg>Open now<em class="ok">${esc(s.project)}</em></div></div>` : '';
+  $('#projects-body').innerHTML = now + '<div class="section-title">Saved projects</div>' + await projectRows();
+  wireProjects($('#projects-body'), () => setTimeout(renderProjects, 400));
+}
+function changesSheet() {
+  const s = S.status;
+  if (!(s.files || []).length) return openSheet('Waiting changes', '<p>Nothing is waiting for keep or undo.</p>');
+  openSheet(`${s.files.length} file${s.files.length > 1 ? 's' : ''} changed`, `<pre class="code">${diffHtml(s.diff)}</pre>`);
+}
+function draftSheet() {
+  const d = S.status.draft;
+  if (!d) return openSheet('Email draft', '<p>No email is waiting to be sent.</p>');
+  openSheet('Email draft · not sent yet', `<p class="mail-head">To: ${esc(d.to.join(', '))}</p><p class="mail-head">Subject: ${esc(d.subject)}</p><div class="mail-view">${esc(d.body)}</div><p style="margin-top:12px">Nothing is sent until you press Send or say “send it”.</p>`);
+}
+const STATUS_WORDS = {queued: 'Waiting', running: 'Working', succeeded: 'Done', failed: 'Stopped', cancelled: 'Cancelled'};
+function taskLine(t) {
+  const bits = [];
+  if (t.steps) bits.push(`${t.steps} steps`);
+  if (t.cost) bits.push(`$${t.cost.toFixed(2)}`);
+  if (t.plan_total) bits.push(`plan ${t.plan_done}/${t.plan_total}`);
+  if (t.now) bits.push(`now: ${t.now}`);
+  if (t.report) bits.push(`${t.quotes_checked} quotes checked in ${t.sources} sources`);
+  if (t.error && t.status !== 'succeeded') bits.push(t.error);
+  return bits.join(' · ');
+}
+async function researchSheet() {
+  closeMenu();
+  const list = (await call('tasks')) || S.info.tasks || [];
+  const rows = list.map(t => `<button class="task-row" data-task="${esc(t.id)}"><b>${esc(t.title)}</b><em class="${esc(t.status)}">${STATUS_WORDS[t.status] || esc(t.status)}</em><span>${esc(taskLine(t))}</span></button>`).join('');
+  openSheet('Research', `<p>Veronica searches the web, reads sources and writes a report with citations, checked against the pages she read. It runs in the background, with limits on time and cost.</p>
+    <div class="path-row"><input id="topic-input" placeholder="What should Veronica research?" aria-label="Research topic"><button class="pill-btn primary" id="topic-go">Start</button></div>
+    <div class="section-title">Tasks</div>${rows || '<p>No research yet.</p>'}`);
+  const go_ = async () => {
+    const v = $('#topic-input').value.trim(); if (!v) return;
+    $('#topic-go').disabled = true;
+    const id = await call('start_research', v, 'page-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8));
+    if (id) { notice('Research started. It runs in the background.'); researchSheet(); }
+    else $('#topic-go').disabled = false;
+  };
+  $('#topic-go').addEventListener('click', go_);
+  $('#topic-input').addEventListener('keydown', e => { if (e.key === 'Enter') go_(); });
+  $$('.task-row', $('#sheet-body')).forEach(b => b.addEventListener('click', () => taskSheet(b.dataset.task)));
+}
+async function taskSheet(id) {
+  const t = await call('task', id);
+  if (!t) return notice('That task is not available.');
+  S.sheetTask = id;
+  const events = (t.events || []).slice().reverse().map(e => `<li>${new Date(e.at * 1000).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})} · ${esc(e.message)}</li>`).join('');
+  const acts = [t.report ? '<button class="pill-btn primary" id="task-open">Open report</button>' : '',
+                ['queued', 'running'].includes(t.status) ? '<button class="pill-btn danger" id="task-cancel">Cancel</button>' : '',
+                '<button class="pill-btn" id="task-back">All research</button>'].join(' ');
+  openSheet(t.title, `<p><b style="color:var(--text);font-weight:500">${STATUS_WORDS[t.status] || esc(t.status)}</b> · ${esc(taskLine(t))}</p>
+    ${t.report ? '<p>The citation check confirms each [n] points to a page Veronica read and each quote is in that page. It does not prove the claims are true.</p>' : ''}
+    <div style="display:flex;gap:8px;margin:6px 0 10px">${acts}</div><ul class="events">${events}</ul>`);
+  if ($('#task-open')) $('#task-open').addEventListener('click', () => call('open_report', id));
+  if ($('#task-cancel')) $('#task-cancel').addEventListener('click', async () => { await call('cancel_task', id); notice('Cancelling…'); setTimeout(() => taskSheet(id), 600); });
+  $('#task-back').addEventListener('click', researchSheet);
+}
+
+/* ------------------------------------------------------------------ memory */
+async function loadMemories() { S.memories = (await call('memories')) || []; renderMemories(); }
+function renderMemories() {
+  const shown = S.memories.filter(m => S.memTab === 'all' || m.kind === S.memTab);
+  $('#mem-list').innerHTML = shown.length ? shown.map(m => `<div class="mem" data-mem="${m.id}"><b>${esc(m.content)}</b><small>${esc(m.kind)} · ${esc(m.provenance)}</small><span class="acts"><button class="pill-btn" data-edit="${m.id}">Edit</button><button class="pill-btn danger" data-forget="${m.id}">Forget</button></span></div>`).join('<div style="height:8px"></div>')
+    : '<div class="empty-note">Nothing remembered yet. Say “Veronica, remember that…” and it will appear here.</div>';
+  $$('[data-forget]').forEach(b => b.addEventListener('click', async () => { await call('forget_memory', Number(b.dataset.forget)); loadMemories(); }));
+  $$('[data-edit]').forEach(b => b.addEventListener('click', () => {
+    const row = b.closest('.mem'), m = S.memories.find(x => x.id === Number(b.dataset.edit));
+    row.innerHTML = `<textarea aria-label="Edit memory">${esc(m.content)}</textarea><span class="acts"><button class="pill-btn primary">Save</button></span>`;
+    row.querySelector('.primary').addEventListener('click', async () => { await call('edit_memory', m.id, row.querySelector('textarea').value); loadMemories(); });
+  }));
+}
+$$('#mem-tabs button').forEach(b => b.addEventListener('click', () => { S.memTab = b.dataset.tab; $$('#mem-tabs button').forEach(x => x.classList.toggle('on', x === b)); renderMemories(); }));
+
+/* ------------------------------------------------------------------- tools */
+function filterTools() {
+  const q = $('#tool-search').value.trim().toLowerCase();
+  $$('#tool-cards .card').forEach(c => {
+    const okTab = S.toolTab === 'all' || c.dataset.kind === S.toolTab;
+    const okText = !q || c.textContent.toLowerCase().includes(q);
+    c.style.display = okTab && okText ? '' : 'none';
+  });
+}
+$('#tool-search').addEventListener('input', filterTools);
+$$('#tool-tabs button').forEach(b => b.addEventListener('click', () => { S.toolTab = b.dataset.tab; $$('#tool-tabs button').forEach(x => x.classList.toggle('on', x === b)); filterTools(); }));
+$$('[data-expand]').forEach(b => b.addEventListener('click', () => b.classList.toggle('open')));
+
+/* -------------------------------------------------------------- settings */
+$('#about-row').addEventListener('click', async () => {
+  const a = (await call('about')) || {};
+  openSheet('About', `<p><b style="color:var(--text);font-weight:500">Veronica</b>: your assistant for code, email, your calendar and research. One agent, separate from JARVIS and FRIDAY.</p>
+    <p>Thinks with ${esc(a.model || 'Claude Opus 5.5')}. Speaks with ${esc(a.voice || 'Fish Audio')}. Hears you on this PC; your audio is never recorded or sent.</p>
+    <p>Works in one project folder at a time and never in JARVIS's folders. Code changes wait for your keep or undo; emails are sent only when you say so.</p>
+    <p>Folder: ${esc(a.folder || '')}</p>`);
+});
+$('#listen-row').addEventListener('click', () => { S.listenForName = !S.listenForName; renderListen(); call('listen_for_name', S.listenForName); });
+function renderListen() { $('#listen-switch').classList.toggle('on', S.listenForName); $('#listen-row').setAttribute('aria-pressed', String(S.listenForName)); }
+function renderConnections(c) {
+  if (!c) return;
+  const word = (on, yes) => on ? yes : 'Not set up';
+  [['#conn-gmail', c.gmail, 'Connected'], ['#conn-calendar', c.calendar, 'Connected'], ['#conn-search', c.search, 'Brave Search']].forEach(([sel, on, yes]) => {
+    const el = $(sel); el.textContent = word(on, yes); el.classList.toggle('ok', !!on);
+  });
+  const parts = [c.gmail && 'Gmail', c.calendar && 'Calendar', c.search && 'Search'].filter(Boolean);
+  $('#side-status').textContent = parts.length ? parts.join(' · ') : 'Claude Opus 5.5';
+}
+
+/* ----------------------------------------------------------------- notices */
+let toastTimer = 0;
+function notice(text) {
+  const t = $('#toast'); t.textContent = text; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 5200);
+}
+function setState(name) { S.state = name; renderVoice(); }
+
+/* ------------------------------------------- what Python calls (app.py) */
+window.veronica = {
+  state(name) { if (S.state === 'speaking' && current && name === 'thinking') return; setState(name); },
+  level(x) { S.level = Math.max(S.level, x); },
+  message(who, text, show) { addMessage(who, text, show); },
+  status(st) { renderStatus(st); },
+  activity(line) { if ($('#working')) showWorking(line.replace(/^\s+/, '').replace(/^./, c => c.toUpperCase())); },
+  speak(b64, mime) { speak(b64, mime); },
+  notice(text) { notice(text); },
+  voiceMode(on) { if (on && S.screen !== 'voice') { go('voice'); S.voiceMode = true; renderVoice(); } if (!on && S.screen === 'voice') { S.voiceMode = false; go('home'); } },
+  hearingReady(ok) { S.hearing = !!ok; renderVoice(); },
+  voiceName(name) { $('#voice-name').textContent = name; $('#voice-provider').textContent = name; },
+  info(info) {
+    Object.assign(S.info, info || {});
+    if (info && info.pending) S.status = Object.assign({}, S.status, info.pending);
+    renderSuggestions();
+    if (S.sheetTask && $('#sheet').classList.contains('show')) taskSheet(S.sheetTask);
+  },
+};
+
+/* ----------------------------------------------------------------- start */
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if ($('#sheet').classList.contains('show')) return closeSheet();
+  if ($('#menu').classList.contains('show')) return closeMenu();
+  if (S.screen === 'voice') return leaveVoice();
+  if (S.screen !== 'home') go('home');
+});
+const born = performance.now();
+async function begin(api) {
+  API = api;
+  const info = (await call('start')) || {};
+  if (typeof info.listen_for_name === 'boolean') { S.listenForName = info.listen_for_name; renderListen(); }
+  renderConnections(info.connections);
+  renderStatus();
+  setTimeout(() => { go('home'); setState(S.listenForName ? 'idle' : 'off'); }, Math.max(0, 1600 - (performance.now() - born)));
+}
+const phone = window.matchMedia('(max-width: 899px)');
+const placeholder = () => { $('#ask-input').placeholder = phone.matches ? 'Talk to Veronica...' : 'Message Veronica...'; };
+phone.addEventListener('change', placeholder); placeholder();
+window.addEventListener('pywebviewready', () => begin(window.pywebview.api));
+// Opened in an ordinary browser (to look at the layout): a stand-in that only echoes.
+setTimeout(() => {
+  if (API) return;
+  const demoTasks = [{id: 'a1', title: 'Heat pumps in cold climates', status: 'succeeded', steps: 9, cost: 0.41, plan_done: 3, plan_total: 3, report: true, quotes_checked: 6, sources: 4},
+                     {id: 'b2', title: 'Best laptops for coding', status: 'running', steps: 4, cost: 0.12, plan_done: 1, plan_total: 4, now: 'fetch_source'}];
+  begin({
+    start: () => ({listen_for_name: true, connections: {gmail: true, calendar: true, search: true}}),
+    send: t => setTimeout(() => window.veronica.message('veronica', 'Preview only: this page is not connected to Veronica.'), 700),
+    projects: () => [{name: 'calculator', folder: 'C:\\Users\\you\\projects\\calculator'}],
+    tasks: () => demoTasks,
+    task: id => Object.assign({events: [{at: Date.now() / 1000 - 60, message: 'Started'}, {at: Date.now() / 1000, message: 'Saved the report'}]}, demoTasks.find(t => t.id === id)),
+    memories: () => [{id: 1, kind: 'preference', content: 'Use British spelling in reports.', provenance: 'the owner, in conversation'}],
+    about: () => ({model: 'Claude Opus 5.5', voice: 'Fish Audio', folder: '(preview)'}),
+  });
+  setTimeout(() => {
+    window.veronica.hearingReady(true); window.veronica.info({tasks: demoTasks, unread: 12, events_today: 3});
+    const demo = location.hash.slice(1);   // preview only: #chat, #voice, #tools, #memory, #profile, #research
+    if (demo === 'chat') {
+      addMessage('you', 'Reply to Jack and say Thursday works');
+      addMessage('veronica', 'Jack asked about lunch on Thursday. I drafted a reply saying Thursday works. The email to jack@example.com is ready: say send it, or discard it.');
+      renderStatus({project: 'calculator', files: ['app.py'], tests: true, diff: '', draft: {id: 'd1', to: ['jack@example.com'], subject: 'Re: Lunch?', body: 'Thursday works!'}});
+    } else if (demo === 'voice') { enterVoice(); }
+    else if (demo === 'research') { researchSheet(); }
+    else if (demo) { go(demo); }
+  }, 2100);
+}, 2500);
+</script>
+</body>
+</html>

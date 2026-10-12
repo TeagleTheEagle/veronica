@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.env
+projects.json
+models/
+data/
+reports/
+settings.json
+veronica.log
+VERONICA.exe
+.env.*
+!.env.example
+desktop.ini
+build/
+dist/
+*.spec

@@ -1,0 +1,4 @@
+{
+  "calculator": {"folder": "C:\\Users\\jonny\\projects\\calculator", "test": "python -m pytest -q"},
+  "website": {"folder": "C:\\Users\\jonny\\projects\\website", "test": "npm test"}
+}
