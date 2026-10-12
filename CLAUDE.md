@@ -15,4 +15,5 @@ orb window (`VERONICA.exe` -> `.venv\Scripts\pythonw.exe app.py`), Gmail and Cal
   run in place, the checkpoint code writes test conversations into her real `data\checkpoints`.
 - **Known state (see the first commit):** on 2026-10-11 Qwen Code made her "fully autonomous": `send_email` sends
   without approval, `calendar_add`/`calendar_edit` only pretend, keep/undo is gone, and the README still describes
-  the earlier draft-only design. Changing that is the owner's decision.
+  the earlier draft-only design. **Owner's decision, 2026-10-12: keep her autonomous** ("keep it as it is"): she
+  sends email without asking. Do not put an approval step back unless the owner asks.
