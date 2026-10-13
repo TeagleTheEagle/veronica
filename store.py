@@ -107,7 +107,51 @@ CREATE TABLE IF NOT EXISTS workers (
     pid INTEGER NOT NULL,
     beat_at REAL NOT NULL
 );
+CREATE TABLE IF NOT EXISTS goals (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    detail TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL,
+    origin TEXT NOT NULL,
+    notes TEXT NOT NULL DEFAULT '[]',
+    outcome TEXT,
+    beats INTEGER NOT NULL DEFAULT 0,
+    worked_at REAL,
+    created_at REAL NOT NULL,
+    updated_at REAL NOT NULL,
+    decided_at REAL
+);
+CREATE TABLE IF NOT EXISTS proposals (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    kind TEXT NOT NULL,
+    title TEXT NOT NULL,
+    detail TEXT NOT NULL DEFAULT '',
+    goal_id INTEGER,
+    status TEXT NOT NULL,
+    outcome TEXT,
+    beats INTEGER NOT NULL DEFAULT 0,
+    worked_at REAL,
+    created_at REAL NOT NULL,
+    updated_at REAL NOT NULL,
+    decided_at REAL
+);
+CREATE TABLE IF NOT EXISTS heartbeats (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    at REAL NOT NULL,
+    kind TEXT NOT NULL,
+    item TEXT,
+    summary TEXT NOT NULL DEFAULT '',
+    ok INTEGER NOT NULL DEFAULT 1
+);
 """
+
+# Goals: 'proposed' (by VERONICA, waiting for the owner) -> 'active' (approved, or added by the owner) -> 'done';
+# or 'declined' by the owner, 'paused' / 'dropped' by the owner. Proposals (a fix, an improvement, a task):
+# 'pending' -> 'approved' -> 'done' or 'failed'; or 'declined'. Only the owner's own actions (the window's buttons,
+# his typed or spoken "approve proposal 3") move anything out of 'proposed' / 'pending': VERONICA has no tool for it.
+GOAL_STATUSES = ('proposed', 'active', 'paused', 'done', 'declined', 'dropped')
+PROPOSAL_KINDS = ('fix', 'improvement', 'task')
+PROPOSAL_STATUSES = ('pending', 'approved', 'done', 'failed', 'declined')
 
 
 def now():
@@ -412,6 +456,148 @@ class Store:
         with self.lock:
             rows = self.conn.execute('SELECT * FROM workers WHERE beat_at > ?', (now() - within,)).fetchall()
         return [dict(r) for r in rows]
+
+    # ----- goals and proposals (stage 3) ------------------------------------------------------------------------
+
+    def add_goal(self, title, detail='', origin='veronica'):
+        """A goal. VERONICA's start as 'proposed' and wait for the owner; the owner's are 'active' at once. The same
+        title already proposed or active gives back that goal (no duplicates)."""
+        title, detail = _clean(title, 200), _clean(detail, 2000)
+        if len(title) < 3:
+            raise ValueError('Give the goal a title of at least 3 characters.')
+        status = 'active' if origin == 'owner' else 'proposed'
+        with self._tx(immediate=True) as db:
+            row = db.execute("SELECT id FROM goals WHERE lower(title) = lower(?) AND status IN ('proposed', 'active', "
+                             "'paused')", (title,)).fetchone()
+            if row:
+                return self.goal(row['id']), False
+            cursor = db.execute('INSERT INTO goals (title, detail, status, origin, created_at, updated_at, decided_at) '
+                                'VALUES (?, ?, ?, ?, ?, ?, ?)', (title, detail, status, origin, now(), now(),
+                                                                 now() if origin == 'owner' else None))
+        return self.goal(cursor.lastrowid), True
+
+    def goal(self, goal_id):
+        with self.lock:
+            row = self.conn.execute('SELECT * FROM goals WHERE id = ?', (goal_id,)).fetchone()
+        return _row(row, 'notes')
+
+    def goals(self, statuses=None):
+        with self.lock:
+            if statuses:
+                rows = self.conn.execute(f'SELECT * FROM goals WHERE status IN ({",".join("?" * len(statuses))}) '
+                                         'ORDER BY id', tuple(statuses)).fetchall()
+            else:
+                rows = self.conn.execute('SELECT * FROM goals ORDER BY id').fetchall()
+        return [_row(r, 'notes') for r in rows]
+
+    def set_goal_status(self, goal_id, status, outcome=None, allowed_from=None):
+        """Move a goal to `status`, only from one of `allowed_from` when given. The goal, or None when it was not
+        there or not in an allowed status."""
+        assert status in GOAL_STATUSES
+        with self._tx(immediate=True) as db:
+            row = db.execute('SELECT status FROM goals WHERE id = ?', (goal_id,)).fetchone()
+            if row is None or (allowed_from and row['status'] not in allowed_from):
+                return None
+            decided = now() if row['status'] == 'proposed' and status != 'proposed' else None
+            db.execute('UPDATE goals SET status = ?, outcome = COALESCE(?, outcome), updated_at = ?, '
+                       'decided_at = COALESCE(?, decided_at) WHERE id = ?',
+                       (status, _clean(outcome, 1000) if outcome else None, now(), decided, goal_id))
+        return self.goal(goal_id)
+
+    def note_goal(self, goal_id, note, worked=True):
+        """Add a progress note to an active goal (the last 30 are kept). The goal, or None."""
+        with self._tx(immediate=True) as db:
+            row = db.execute('SELECT notes, status FROM goals WHERE id = ?', (goal_id,)).fetchone()
+            if row is None:
+                return None
+            notes = json.loads(row['notes'])[-29:] + [{'at': now(), 'note': _clean(note, 1000)}]
+            db.execute('UPDATE goals SET notes = ?, updated_at = ?' + (', worked_at = ?' if worked else '') +
+                       ' WHERE id = ?', (json.dumps(notes), now(), *((now(),) if worked else ()), goal_id))
+        return self.goal(goal_id)
+
+    def add_proposal(self, kind, title, detail='', goal_id=None):
+        """A fix, improvement or task VERONICA suggests; it waits ('pending') for the owner. The same title already
+        pending or approved gives back that proposal."""
+        kind = str(kind or '').strip().lower()
+        if kind not in PROPOSAL_KINDS:
+            raise ValueError(f'The kind is one of: {", ".join(PROPOSAL_KINDS)}.')
+        title, detail = _clean(title, 200), _clean(detail, 3000)
+        if len(title) < 3:
+            raise ValueError('Give the proposal a title of at least 3 characters.')
+        with self._tx(immediate=True) as db:
+            row = db.execute("SELECT id FROM proposals WHERE lower(title) = lower(?) AND status IN ('pending', "
+                             "'approved')", (title,)).fetchone()
+            if row:
+                return self.proposal(row['id']), False
+            cursor = db.execute("INSERT INTO proposals (kind, title, detail, goal_id, status, created_at, updated_at) "
+                                "VALUES (?, ?, ?, ?, 'pending', ?, ?)", (kind, title, detail, goal_id, now(), now()))
+        return self.proposal(cursor.lastrowid), True
+
+    def proposal(self, proposal_id):
+        with self.lock:
+            row = self.conn.execute('SELECT * FROM proposals WHERE id = ?', (proposal_id,)).fetchone()
+        return dict(row) if row else None
+
+    def proposals(self, statuses=None):
+        with self.lock:
+            if statuses:
+                rows = self.conn.execute(f'SELECT * FROM proposals WHERE status IN '
+                                         f'({",".join("?" * len(statuses))}) ORDER BY id', tuple(statuses)).fetchall()
+            else:
+                rows = self.conn.execute('SELECT * FROM proposals ORDER BY id').fetchall()
+        return [dict(r) for r in rows]
+
+    def set_proposal_status(self, proposal_id, status, outcome=None, allowed_from=None):
+        assert status in PROPOSAL_STATUSES
+        with self._tx(immediate=True) as db:
+            row = db.execute('SELECT status FROM proposals WHERE id = ?', (proposal_id,)).fetchone()
+            if row is None or (allowed_from and row['status'] not in allowed_from):
+                return None
+            decided = now() if row['status'] == 'pending' and status != 'pending' else None
+            db.execute('UPDATE proposals SET status = ?, outcome = COALESCE(?, outcome), updated_at = ?, '
+                       'decided_at = COALESCE(?, decided_at) WHERE id = ?',
+                       (status, _clean(outcome, 1000) if outcome else None, now(), decided, proposal_id))
+        return self.proposal(proposal_id)
+
+    def worked_on(self, kind, item_id):
+        """A heartbeat spent time on this goal or proposal."""
+        table = {'goal': 'goals', 'proposal': 'proposals'}[kind]
+        with self._tx() as db:
+            db.execute(f'UPDATE {table} SET beats = beats + 1, worked_at = ?, updated_at = ? WHERE id = ?',
+                       (now(), now(), item_id))
+
+    def next_work(self):
+        """What the heartbeat works on next: an approved proposal (the least recently worked on first), else an
+        active goal (likewise). ('proposal' | 'goal', row) or None."""
+        with self.lock:
+            row = self.conn.execute("SELECT * FROM proposals WHERE status = 'approved' "
+                                    "ORDER BY COALESCE(worked_at, 0), id LIMIT 1").fetchone()
+            if row:
+                return 'proposal', dict(row)
+            row = self.conn.execute("SELECT * FROM goals WHERE status = 'active' "
+                                    "ORDER BY COALESCE(worked_at, 0), id LIMIT 1").fetchone()
+        return ('goal', _row(row, 'notes')) if row else None
+
+    # ----- heartbeats ------------------------------------------------------------------------------------------
+
+    def add_heartbeat(self, kind, item=None, summary='', ok=True):
+        with self._tx() as db:
+            cursor = db.execute('INSERT INTO heartbeats (at, kind, item, summary, ok) VALUES (?, ?, ?, ?, ?)',
+                                (now(), kind, item, _clean(summary, 2000), 1 if ok else 0))
+        return cursor.lastrowid
+
+    def heartbeats(self, limit=20, kind=None):
+        with self.lock:
+            if kind:
+                rows = self.conn.execute('SELECT * FROM heartbeats WHERE kind = ? ORDER BY id DESC LIMIT ?',
+                                         (kind, limit)).fetchall()
+            else:
+                rows = self.conn.execute('SELECT * FROM heartbeats ORDER BY id DESC LIMIT ?', (limit,)).fetchall()
+        return [dict(r) for r in rows]
+
+
+def _clean(text, limit):
+    return ' '.join(str(text or '').split())[:limit]
 
 
 class _Transaction:

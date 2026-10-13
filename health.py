@@ -37,7 +37,7 @@ HERE = safety.HERE
 PYTHON = HERE / '.venv' / 'Scripts' / 'python.exe'
 REPAIRS = HERE / 'data' / 'self-repair'
 OWN_PATTERNS = ('*.py', 'pytest.ini', 'requirements.txt', '*.md', '.env.example', 'ui/*', 'launcher/*')
-MODULES = ('agent', 'app', 'changes', 'calendar_feed', 'citations', 'context_state', 'gmail', 'hands', 'health',
+MODULES = ('agent', 'app', 'changes', 'calendar_feed', 'citations', 'context_state', 'gmail', 'goals', 'hands', 'health',
            'models', 'research', 'store', 'subagents', 'tasks', 'voice', 'web')
 REQUIRED_KEYS = ('OPENROUTER_API_KEY',)
 OPTIONAL_KEYS = ('BRAVE_API_KEY', 'FISH_API_KEY', 'GMAIL_ADDRESS', 'GMAIL_APP_PASSWORD', 'GOOGLE_CALENDAR_ICS',
@@ -112,6 +112,7 @@ def imports_ok(root=HERE, python=None, modules=MODULES, timeout=120):
 def check(store=None, root=HERE, python=None, imports=True, modules=MODULES, start_worker=True):
     """The health report. `store` is her database (opened if None); the worker is started when tasks wait."""
     report = Report()
+    root = Path(root)                  # callers may give the folder as text
     python = Path(python) if python else (PYTHON if PYTHON.is_file() else Path(sys.executable))
     report.checks.append(Check('python', python.is_file(), str(python)))
 

@@ -239,6 +239,14 @@ def test_a_second_repair_waits_for_the_first(home, tmp_path):
     veronica.store.close()
 
 
+def test_the_check_takes_her_folder_as_text_too(home, tmp_path, monkeypatch):
+    monkeypatch.setattr(health, 'imports_ok', lambda *a, **k: (True, ''))
+    db = store_mod.Store(tmp_path / 'v.db')
+    report = health.check(store=db, root=str(home), start_worker=False)
+    assert [c.name for c in report.checks][-2:] == ['speech model', 'repairs']
+    db.close()
+
+
 def test_self_check_from_chat(home, tmp_path, monkeypatch):
     monkeypatch.setenv('OPENROUTER_API_KEY', 'or-test')
     monkeypatch.setattr(health, 'imports_ok', lambda *a, **k: (True, ''))

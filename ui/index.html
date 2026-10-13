@@ -216,6 +216,18 @@ pre.code .add { color: #86efac; } pre.code .del { color: #fda4af; } pre.code .hu
 .mem b { font-weight: 500; font-size: 14px; user-select: text; }
 .mem small { grid-column: 1 / 2; color: var(--muted); font-size: 11.5px; }
 .mem .acts { grid-row: 1 / 3; grid-column: 2; display: flex; gap: 6px; }
+.side-nav .count { margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: #9d8cff; color: #17133a; font-size: 11.5px; font-weight: 700; display: none; place-items: center; }
+.side-nav .count.show { display: grid; }
+.goal { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: start; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--card); margin-bottom: 8px; }
+.goal b { font-weight: 500; font-size: 14px; user-select: text; }
+.goal .tag { display: inline-block; font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 1px 7px; border-radius: 6px; margin-right: 6px; background: rgba(169,155,255,.18); color: #cfc7ff; vertical-align: 1px; }
+.goal .tag.fix { background: rgba(251,113,133,.16); color: #fecdd3; } .goal .tag.task { background: rgba(110,231,183,.14); color: #86efac; }
+.goal p { grid-column: 1 / 3; margin: 2px 0 0; color: var(--muted); font-size: 12.5px; line-height: 1.5; user-select: text; }
+.goal small { grid-column: 1 / 3; color: var(--muted); font-size: 11.5px; }
+.goal .acts { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.goal.waiting { border-color: rgba(169,155,255,.45); }
+.set select { background: transparent; color: var(--muted); border: 0; font: inherit; font-size: 13px; }
+.set select option { background: #11121a; color: var(--text); }
 .mem textarea { width: 100%; min-height: 44px; border-radius: 10px; border: 1px solid var(--line-hi); background: #08090f; color: var(--text); font: inherit; font-size: 13.5px; padding: 8px 10px; resize: vertical; user-select: text; }
 
 #profile .who { display: grid; justify-items: center; gap: 8px; padding: 0 0 20px; }
@@ -285,6 +297,7 @@ pre.code .add { color: #86efac; } pre.code .del { color: #fda4af; } pre.code .hu
     <button data-go="tools"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/></svg>Tools</button>
     <button data-go="memory"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.6-3 8.3-7 10-4-1.7-7-5.4-7-10V6z"/></svg>Memory</button>
     <button data-go="projects"><svg viewBox="0 0 24 24"><path d="M12 3 3 8l9 5 9-5zM3 13l9 5 9-5"/></svg>Projects</button>
+    <button data-go="goals"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>Goals<span class="count" id="goals-count"></span></button>
     <button data-act="research"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>Research</button>
     <div style="height:14px"></div>
     <button data-go="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14.2 3h-4.4l-.4 2.6a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 2 1.2l.4 2.6h4.4l.4-2.6a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg>Settings</button>
@@ -393,6 +406,26 @@ pre.code .add { color: #86efac; } pre.code .del { color: #fda4af; } pre.code .hu
   </div>
 </section>
 
+<!-- goals and proposals: she proposes, you approve -->
+<section class="screen" id="goals" aria-label="Goals">
+  <div class="page scroll">
+    <div class="page-head"><button class="icon-btn back" data-go="home" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h2>Goals</h2><p>What Veronica works on by herself. Nothing she suggests starts until you approve it.</p></div>
+    <div class="path-row"><input id="goal-input" placeholder="Give Veronica a goal…" aria-label="New goal" maxlength="200"><button class="pill-btn primary" id="goal-add">Add</button></div>
+    <div class="section-title">Waiting for you</div><div id="goals-waiting"></div>
+    <div class="section-title">Approved work</div><div id="goals-work"></div>
+    <div class="section-title">Goals</div><div id="goals-active"></div>
+    <div class="section-title">Heartbeat</div>
+    <div class="settings" id="beat-box">
+      <button class="set" id="beat-row" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg>Work on her own<span class="switch on" id="beat-switch"></span></button>
+      <div class="set"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg>Every<em><select id="beat-minutes" aria-label="How often"><option value="15">15 minutes</option><option value="30">30 minutes</option><option value="60">hour</option><option value="180">3 hours</option><option value="360">6 hours</option><option value="1440">day</option></select></em></div>
+      <button class="set" id="review-row" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg>Daily ideas for you<span class="switch on" id="review-switch"></span></button>
+      <button class="set" id="beat-go"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span id="beat-line">Run a heartbeat now</span><em id="beat-when"></em></button>
+    </div>
+    <div id="beat-recent"></div>
+    <div class="section-title">Finished</div><div id="goals-finished"></div>
+  </div>
+</section>
+
 <!-- profile / settings -->
 <section class="screen" id="profile" aria-label="Settings">
   <div class="page scroll">
@@ -434,6 +467,7 @@ pre.code .add { color: #86efac; } pre.code .del { color: #fda4af; } pre.code .hu
   <button class="menu-row" data-menu="research"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>Research<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
   <button class="menu-row" data-menu="tools"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/></svg>Tools<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
   <button class="menu-row" data-menu="memory"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/></svg>Memory<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+  <button class="menu-row" data-menu="goals"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/></svg>Goals &amp; proposals<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
   <button class="menu-row" data-menu="projects"><svg viewBox="0 0 24 24"><path d="M12 3 3 8l9 5 9-5zM3 13l9 5 9-5"/></svg>Projects<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
   <button class="menu-row" data-menu="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14.2 3h-4.4l-.4 2.6a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 2 1.2l.4 2.6h4.4l.4-2.6a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg>Settings<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
   <div class="model-card"><b><i></i>Claude Sonnet 5.5</b><span>Through OpenRouter: Sonnet for chat and research, Opus 5.5 for coding, MiMo-V2.6-Flash for helpers. Speaks with Fish Audio.</span></div>
@@ -631,6 +665,7 @@ function go(name) {
   S.screen = name;
   if (name === 'memory') loadMemories();
   if (name === 'projects') renderProjects();
+  if (name === 'goals') loadGoals();
 }
 document.addEventListener('click', e => {
   const target = e.target.closest('[data-go]');
@@ -816,6 +851,7 @@ function renderSuggestions() {
   if (s.draft) items.push(['draft', ICON.mail, 'An email is ready', `To ${s.draft.to.join(', ')}`]);
   if (s.project && !(s.files || []).length) items.push(['continue', ICON.code, 'Continue your project', s.project]);
   if (typeof i.events_today === 'number') items.push(['schedule', ICON.cal, 'Check your schedule', i.events_today ? `You have ${i.events_today} event${i.events_today > 1 ? 's' : ''} left today` : 'Nothing else today']);
+  if (i.waiting) items.unshift(['goals', ICON.code, 'Veronica has ideas for you', `${i.waiting} waiting for your approval`]);
   if (typeof i.unread === 'number') items.push(['email', ICON.mail, 'Check your email', `${i.unread.toLocaleString()} unread`]);
   items.push(['research', ICON.search, 'Research mode', 'Deep dive on your topic']);
   $('#suggest').innerHTML = items.slice(0, 5).map(([k, ic, b, sub]) => `<button class="sugg" data-sugg="${k}"><span class="ic">${ic}</span><span><b>${esc(b)}</b><span>${esc(sub)}</span></span>${ICON.chev}</button>`).join('');
@@ -827,6 +863,7 @@ function renderSuggestions() {
     else if (k === 'schedule') send("What's on my calendar for the rest of today?");
     else if (k === 'email') send('Any important unread emails?');
     else if (k === 'research') researchSheet();
+    else if (k === 'goals') go('goals');
   }));
   const tasks = (i.tasks || []).slice(0, 6);
   $('#recent').innerHTML = tasks.length ? tasks.map(t => `<button class="recent" data-task="${esc(t.id)}"><span class="st ${esc(t.status)}"></span><span>${esc(t.title)}</span></button>`).join('') : '<div class="empty-note">No research yet. Ask Veronica to research a topic, or use Research Mode.</div>';
@@ -932,6 +969,68 @@ function renderMemories() {
 }
 $$('#mem-tabs button').forEach(b => b.addEventListener('click', () => { S.memTab = b.dataset.tab; $$('#mem-tabs button').forEach(x => x.classList.toggle('on', x === b)); renderMemories(); }));
 
+/* ------------------------------------------------------------------- goals */
+const ACTIONS = {
+  goal: {proposed: [['approve', 'Approve', 'primary'], ['decline', 'Decline', 'danger']],
+         active: [['done', 'Done', ''], ['pause', 'Pause', ''], ['drop', 'Drop', 'danger']],
+         paused: [['resume', 'Resume', 'primary'], ['drop', 'Drop', 'danger']]},
+  proposal: {pending: [['approve', 'Approve', 'primary'], ['decline', 'Decline', 'danger']],
+             approved: [['drop', 'Cancel', 'danger']]},
+};
+const ITEM_WORDS = {proposed: 'Waiting for you', active: 'Active', paused: 'Paused', done: 'Done', declined: 'Declined',
+                    dropped: 'Dropped', pending: 'Waiting for you', approved: 'Approved · being worked on', failed: 'Not done'};
+const when = at => new Date(at * 1000).toLocaleString([], {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'});
+function goalCard(r, actions) {
+  const tag = r.type === 'goal' ? `<span class="tag">${r.origin === 'owner' ? 'your goal' : 'goal'}</span>` : `<span class="tag ${esc(r.kind)}">${esc(r.kind)}</span>`;
+  const buttons = (actions ? (ACTIONS[r.type][r.status] || []) : []).map(([a, label, cls]) =>
+    `<button class="pill-btn ${cls}" data-decide="${a}" data-type="${r.type}" data-id="${r.id}">${label}</button>`).join('');
+  const notes = (r.notes || []).map(n => `<small>${when(n.at)} · ${esc(n.note)}</small>`).join('');
+  const extra = [r.beats ? `${r.beats} heartbeat${r.beats > 1 ? 's' : ''}` : '', r.goal_id ? `for goal ${r.goal_id}` : '',
+                 ITEM_WORDS[r.status] || r.status].filter(Boolean).join(' · ');
+  return `<div class="goal${['proposed', 'pending'].includes(r.status) ? ' waiting' : ''}"><b>${tag}${esc(r.type)} ${r.id}: ${esc(r.title)}</b>
+    <span class="acts">${buttons}</span>${r.detail ? `<p>${esc(r.detail)}</p>` : ''}${notes}
+    ${r.outcome && !['proposed', 'pending', 'active', 'approved'].includes(r.status) ? `<p>Outcome: ${esc(r.outcome)}</p>` : ''}<small>${esc(extra)}</small></div>`;
+}
+async function loadGoals() {
+  const g = await call('goals');
+  if (!g) return;
+  S.goals = g;
+  const list = (rows, actions, empty) => rows.length ? rows.map(r => goalCard(r, actions)).join('') : `<div class="empty-note">${empty}</div>`;
+  $('#goals-waiting').innerHTML = list(g.waiting, true, 'Nothing waits for you. When Veronica has an idea or a fix, it appears here first.');
+  $('#goals-work').innerHTML = list(g.work, true, 'No approved fixes or tasks in progress.');
+  $('#goals-active').innerHTML = list(g.goals, true, 'No goals yet. Add one above, or approve one of hers.');
+  $('#goals-finished').innerHTML = list(g.finished, false, 'Nothing finished yet.');
+  const h = g.heartbeat || {};
+  $('#beat-switch').classList.toggle('on', !!h.on); $('#beat-row').setAttribute('aria-pressed', String(!!h.on));
+  $('#review-switch').classList.toggle('on', !!h.review); $('#review-row').setAttribute('aria-pressed', String(!!h.review));
+  if (h.minutes) $('#beat-minutes').value = String(h.minutes);
+  $('#beat-line').textContent = h.running ? 'Working now…' : 'Run a heartbeat now';
+  $('#beat-when').textContent = h.last ? `last ${when(h.last.at)}` : 'not yet';
+  $('#beat-recent').innerHTML = (h.recent || []).slice(0, 5).map(r =>
+    `<div class="goal"><small>${when(r.at)} · ${esc(r.kind)}${r.item ? ' ' + esc(r.item.replace(':', ' ')) : ''}${r.ok ? '' : ' · problem'}</small><p>${esc(r.summary.slice(0, 400))}</p></div>`).join('');
+  $$('[data-decide]', $('#goals')).forEach(b => b.addEventListener('click', async () => {
+    b.disabled = true;
+    await call('decide', b.dataset.type, Number(b.dataset.id), b.dataset.decide);
+    loadGoals();
+  }));
+}
+function renderGoalCount(n) {
+  const c = $('#goals-count'); c.textContent = n || ''; c.classList.toggle('show', !!n);
+}
+const addGoal = async () => {
+  const i = $('#goal-input'), v = i.value.trim();
+  if (v.length < 3) return;
+  i.value = '';
+  await call('add_goal', v);
+  loadGoals();
+};
+$('#goal-add').addEventListener('click', addGoal);
+$('#goal-input').addEventListener('keydown', e => { if (e.key === 'Enter') addGoal(); });
+$('#beat-row').addEventListener('click', async () => { await call('heartbeat_settings', !(S.goals && S.goals.heartbeat && S.goals.heartbeat.on), null, null); loadGoals(); });
+$('#review-row').addEventListener('click', async () => { await call('heartbeat_settings', null, null, !(S.goals && S.goals.heartbeat && S.goals.heartbeat.review)); loadGoals(); });
+$('#beat-minutes').addEventListener('change', async e => { await call('heartbeat_settings', null, Number(e.target.value), null); loadGoals(); });
+$('#beat-go').addEventListener('click', () => { call('beat_now'); notice('A heartbeat starts within a minute.'); setTimeout(loadGoals, 1500); });
+
 /* ------------------------------------------------------------------- tools */
 function filterTools() {
   const q = $('#tool-search').value.trim().toLowerCase();
@@ -988,6 +1087,8 @@ window.veronica = {
   info(info) {
     Object.assign(S.info, info || {});
     if (info && info.pending) S.status = Object.assign({}, S.status, info.pending);
+    if (info && typeof info.waiting === 'number') renderGoalCount(info.waiting);
+    if (S.screen === 'goals') loadGoals();
     renderSuggestions();
     if (S.sheetTask && $('#sheet').classList.contains('show')) taskSheet(S.sheetTask);
   },
@@ -1026,10 +1127,15 @@ setTimeout(() => {
     tasks: () => demoTasks,
     task: id => Object.assign({events: [{at: Date.now() / 1000 - 60, message: 'Started'}, {at: Date.now() / 1000, message: 'Saved the report'}]}, demoTasks.find(t => t.id === id)),
     memories: () => [{id: 1, kind: 'preference', content: 'Use British spelling in reports.', provenance: 'the owner, in conversation'}],
+    goals: () => ({waiting: [{type: 'proposal', id: 2, kind: 'improvement', title: 'Cache calendar lookups for 5 minutes', detail: 'Calendar is fetched on every question; a short cache would make answers faster.', status: 'pending', beats: 0},
+                             {type: 'goal', id: 3, origin: 'veronica', title: 'Keep my test suite green', detail: 'Fix one failing test per day.', status: 'proposed', beats: 0}],
+                   work: [{type: 'proposal', id: 1, kind: 'fix', title: 'Fix my health check: worker', detail: '', status: 'approved', beats: 1}],
+                   goals: [{type: 'goal', id: 1, origin: 'owner', title: 'Learn my weekly routine', detail: '', status: 'active', beats: 2, notes: [{at: Date.now() / 1000 - 3600, note: 'Read this week\'s calendar: gym Mon/Wed/Fri 6am.'}]}],
+                   finished: [], heartbeat: {on: true, review: true, minutes: 60, running: false, last: {at: Date.now() / 1000 - 1800, summary: 'worked on goal 1', ok: true}, recent: []}}),
     about: () => ({model: 'Claude Sonnet 5.5', voice: 'Fish Audio', folder: '(preview)'}),
   });
   setTimeout(() => {
-    window.veronica.hearingReady(true); window.veronica.info({tasks: demoTasks, unread: 12, events_today: 3});
+    window.veronica.hearingReady(true); window.veronica.info({tasks: demoTasks, unread: 12, events_today: 3, waiting: 2});
     const demo = location.hash.slice(1);   // preview only: #chat, #voice, #tools, #memory, #profile, #research
     if (demo === 'chat') {
       addMessage('you', 'Reply to Jack and say Thursday works');

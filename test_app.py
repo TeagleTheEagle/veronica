@@ -170,7 +170,8 @@ def test_quit_closes_the_window(tmp_path):
 
 def test_the_page_can_only_reach_the_bridge_methods():
     public = sorted(name for name in dir(app.Bridge) if not name.startswith('_'))
-    assert public == ['about', 'cancel_task', 'discard_email', 'edit_memory', 'forget_memory', 'keep',
+    assert public == ['about', 'add_goal', 'beat_now', 'cancel_task', 'decide', 'discard_email', 'edit_memory',
+                      'forget_memory', 'goals', 'heartbeat_settings', 'keep',
                       'listen_for_name', 'memories', 'new_chat', 'open_project', 'open_report', 'pause', 'projects',
                       'quit', 'refresh', 'send', 'send_email', 'speech_done', 'start', 'start_research', 'task',
                       'tasks', 'undo', 'voice_mode']

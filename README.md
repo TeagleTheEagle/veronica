@@ -148,6 +148,14 @@ Her helpers (researcher, secretary) use Xiaomi MiMo-V2.6-Flash ($0.14 / $0.28 pe
 Flash-Lite (a different maker, so an Anthropic outage does not take the backup down too). These lines (and
 `OPENROUTER_HELPER_MODEL` for the helpers) only accept models from the list in `models.py`.
 
+### Goals, proposals and her heartbeat
+
+Open **Goals** in the window. Veronica suggests fixes, improvements, tasks and goals there; **nothing she suggests
+starts until you press Approve** (or type or say "approve proposal 3", "decline goal 2"). Add your own goal with the
+box at the top, or by saying "New goal: ...". While her window is open she works on what you approved at her
+heartbeat (every hour by default; change it, or turn it off, in the same panel), checks her own health, and once a
+day may suggest up to two new ideas. `python goals.py` lists everything; `python goals.py beat` runs one heartbeat.
+
 Extra model: **ASI:One Mini** (`asi1-mini`, Fetch.ai). It is not on OpenRouter: put your asi1.ai key in
 `ASI_ONE_API_KEY` and name `asi1-mini` in one of the lines above (e.g. `OPENROUTER_HELPER_MODEL=asi1-mini`); she then
 calls it at `https://api.asi1.ai/v1`.

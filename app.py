@@ -30,6 +30,8 @@ from agent import Reply, ToolError, Veronica, VeronicaError
 
 INFO_EVERY = 15            # seconds between refreshes of the task list on the page
 MAIL_EVERY = 600           # seconds between unread-mail and today's-calendar counts (network)
+BEAT_FIRST = 120           # seconds after the window opens before the first heartbeat may run
+BEAT_POLL = 60             # seconds between "is a heartbeat due?" checks
 
 HERE = Path(__file__).resolve().parent
 PAGE = HERE / 'ui' / 'index.html'
@@ -70,6 +72,9 @@ class Session:
         self._thread = None
         self._info_thread = None
         self._info_now = threading.Event()
+        self._beat_thread = None
+        self._beat_now = threading.Event()
+        self.heartbeat = None      # goals.Heartbeat, made in start()
         self._shown_draft = None   # the id of the email draft the page shows now (what a spoken "send it" means)
 
     # ----- from the page (any thread) --------------------------------------------------------------------------
@@ -81,6 +86,9 @@ class Session:
         if self._info_thread is None and self.hearing:
             self._info_thread = threading.Thread(target=self._info_loop, name='veronica-info', daemon=True)
             self._info_thread.start()
+        if self._beat_thread is None and self.hearing:
+            self._beat_thread = threading.Thread(target=self._beat_loop, name='veronica-heartbeat', daemon=True)
+            self._beat_thread.start()
         import calendar_feed
         import gmail
         return {'listen_for_name': self.settings['listen_for_name'], 'model': models.label(models.chat_model()),
@@ -91,6 +99,80 @@ class Session:
         self.stopping.set()
         self.spoken.set()
         self._info_now.set()
+        self._beat_now.set()
+
+    # ----- goals, proposals and the heartbeat (goals.py) --------------------------------------------------------
+
+    def _heartbeat(self):
+        if self.heartbeat is None:
+            import goals
+            import health
+            veronica = self.veronica
+            self.heartbeat = goals.Heartbeat(
+                veronica.store,
+                lambda: Veronica(store=veronica.store, home=veronica.home, projects_file=veronica.projects_file,
+                                 log=lambda line: log.info('heartbeat:%s', line)),
+                health_check=lambda: health.check(store=veronica.store, root=veronica.home))
+        return self.heartbeat
+
+    def goals_panel(self):
+        import goals
+        return goals.panel(self.veronica.store, self._heartbeat())
+
+    def decide(self, kind, item_id, action):
+        """The owner pressed Approve / Decline / Pause / Resume / Drop / Done in the Goals panel."""
+        import goals
+        done, said = goals.decide(self.veronica.store, kind, int(item_id), action)
+        if done:
+            self.veronica.notes.append(f'[Owner] {said}')
+            if action == 'approve':
+                self._beat_now.set()        # approved work starts at the next heartbeat check, not in an hour
+        self.ui.notice(said)
+        self._info_now.set()
+        return done
+
+    def add_goal(self, title):
+        import goals
+        try:
+            goal, said = goals.add_owner_goal(self.veronica.store, title)
+        except ValueError as problem:
+            self.ui.notice(str(problem))
+            return None
+        self.veronica.notes.append(f'[Owner] added goal {goal["id"]}: {goal["title"]}.')
+        self.ui.notice(said)
+        self._info_now.set()
+        return goal['id']
+
+    def heartbeat_settings(self, on=None, minutes=None, review=None):
+        return self._heartbeat().set_config(on=on, minutes=minutes, review=review)
+
+    def beat_now(self):
+        self._beat_now.set()
+
+    def _beat_loop(self):
+        """VERONICA's own working time while the window is open: a heartbeat whenever one is due (goals.py)."""
+        self._beat_now.wait(BEAT_FIRST)
+        while not self.stopping.is_set():
+            asked = self._beat_now.is_set()
+            self._beat_now.clear()
+            try:
+                beat = self._heartbeat()
+                if asked or beat.due():
+                    self._beat()
+            except Exception:
+                log.exception('heartbeat')
+            self._beat_now.wait(BEAT_POLL)
+
+    def _beat(self):
+        beat = self._heartbeat()
+        self._info_now.set()
+        result = beat.beat()
+        log.info('heartbeat: %s', result['summary'])
+        if result['notify']:
+            self.ui.notice('Heartbeat: ' + result['summary'][:300])
+            self.veronica.notes.append(f'[VERONICA heartbeat] {result["summary"][:1500]}')
+        self._info_now.set()
+        return result
 
     # ----- research tasks, memory and suggestions (any thread; the store is thread-safe) -----------------------
 
@@ -161,6 +243,9 @@ class Session:
             try:
                 info['tasks'] = self.task_list()
                 info['memories'] = len(self.veronica.store.memories())
+                import goals
+                info['waiting'] = len(goals.waiting(self.veronica.store))
+                info['beating'] = bool(self.heartbeat and self.heartbeat.running)
             except Exception:
                 log.exception('task list')
             if time.time() - mail_at > MAIL_EVERY:
@@ -532,6 +617,30 @@ class Bridge:
 
     def refresh(self):
         self._session._info_now.set()
+
+    def goals(self):
+        return self._session.goals_panel()
+
+    def decide(self, kind, item_id, action):
+        kind, action = str(kind or ''), str(action or '')
+        if kind not in ('goal', 'proposal'):
+            return False
+        try:
+            item_id = int(item_id)
+        except (TypeError, ValueError):
+            return False
+        return self._session.decide(kind, item_id, action)
+
+    def add_goal(self, title):
+        return self._session.add_goal(str(title or '').strip()[:200])
+
+    def heartbeat_settings(self, on=None, minutes=None, review=None):
+        return self._session.heartbeat_settings(on=None if on is None else bool(on),
+                                                minutes=None if minutes is None else int(minutes),
+                                                review=None if review is None else bool(review))
+
+    def beat_now(self):
+        self._session.beat_now()
 
     def about(self):
         return {'folder': str(HERE), 'model': models.label(models.chat_model()),

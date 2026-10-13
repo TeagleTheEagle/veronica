@@ -28,8 +28,23 @@ orb window (`VERONICA.exe` -> `.venv\Scripts\pythonw.exe app.py`), Gmail and Cal
   killed at the timeout), `start_process`/`process_output`/`stop_process`/`list_processes` (background programs
   logging to temp files), and `web_search`/`fetch_url` over `web.py`. Output goes through `changes.hide_secrets`.
   The `coder` subagent has these tools and uses `OPENROUTER_CODING_MODEL` when set (`agent.coding_model()`); the
-  `researcher`'s tools now exist. Tests: `test_hands.py`. Planned next: stage 2 self-repair (health check, fix-yourself
-  on a branch, rollback), stage 3 goals + proposals panel + heartbeat, stage 4 PC control.
+  `researcher`'s tools now exist. Tests: `test_hands.py`.
+- **Stage 2, self-repair (2026-10-14, commit 09b4466):** `health.py`: health check at window start and `self_check`;
+  `start_self_repair`/`finish_self_repair`/`rollback_self_repair`: snapshot in `data\self-repair`, test baseline,
+  branch `self-repair/<stamp>` (no checkout), automatic rollback on a new failing test or failed check. Tests:
+  `test_health.py`. Verified live on a throwaway copy (she fixed a planted bug in `models.label()`).
+- **Stage 3, goals + proposals + heartbeat (2026-10-14; owner 2026-10-13: every change and goal she proposes needs
+  his approval first):** `goals.py` + tables `goals`/`proposals`/`heartbeats` in `store.py`. Her tools:
+  `propose_goal`, `propose_change` (fix/improvement/task), `goal_progress` and `finish_proposal` (refused unless the
+  item is approved/active), `list_goals`. She has NO tool that approves: only the owner's own words, read by
+  `agent.respond` before the model ("approve proposal 3", "decline goal 2", "pause/resume/drop goal N", "goal N is
+  done", "new goal: ..."), and the window's Goals panel (`Bridge.decide`/`add_goal`) move items. Heartbeat runs set
+  `owner_present = False`, so text inside them never decides. Heartbeat (`app.Session._beat_loop`, while the window
+  is open; settings in `data\heartbeat.json`, default hourly, minimum 15 min; or `python goals.py beat`): health
+  check (a failing check becomes a pending fix proposal, keys excepted, a declined one quiet for 7 days), one step of
+  approved work (approved proposals first, each at most 3 heartbeats), and a daily review that may propose up to 2
+  ideas. Each run is a fresh conversation capped at 40 model steps (review 15). Tests: `test_goals.py`.
+  Planned next: stage 4 PC control.
 - **Known test failures (2026-10-13):** 20 tests fail on the uncommitted working tree, the same 20 before and after
   the Qwen switch: the safety, approval-before-sending and marker-defusing tests (the rules they check were removed
   in the uncommitted `safety.py`/`agent.py` of 2026-10-12, which the owner said to leave as they are), and the speech
