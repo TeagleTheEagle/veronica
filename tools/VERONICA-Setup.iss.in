@@ -10,7 +10,7 @@
 #define MyAppGuid "6E1B7C40-2F5A-4C83-9B0E-5D7A1F3C8E24"
 
 [Setup]
-AppId={{#MyAppGuid}
+AppId={{{#MyAppGuid}}
 AppName=VERONICA
 AppVersion=@VERSION@
 AppVerName=VERONICA @VERSION@
