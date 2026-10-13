@@ -92,12 +92,13 @@ def describe(task, events=None):
 def _transient(error):
     if getattr(error, 'is_retryable', False) or getattr(error, 'transient', False):
         return True
-    try:
-        import anthropic
-        if isinstance(error, (anthropic.APIConnectionError, anthropic.RateLimitError, anthropic.InternalServerError)):
+    for sdk in ('openai', 'anthropic'):  # OpenRouter (through the openai package) since 2026-10-13; Anthropic before
+        try:
+            module = __import__(sdk)
+        except ImportError:
+            continue
+        if isinstance(error, (module.APIConnectionError, module.RateLimitError, module.InternalServerError)):
             return True
-    except ImportError:
-        pass
     return isinstance(error, (ConnectionError, TimeoutError, socket.timeout))
 
 

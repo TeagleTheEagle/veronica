@@ -290,7 +290,7 @@ pre.code .add { color: #86efac; } pre.code .del { color: #fda4af; } pre.code .hu
     <button data-go="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14.2 3h-4.4l-.4 2.6a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 2 1.2l.4 2.6h4.4l.4-2.6a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg>Settings</button>
   </nav>
   <div class="side-gap"></div>
-  <button class="side-card" data-go="profile"><span class="avatar">V</span><span><b>Veronica</b><small id="side-status">Claude Opus 5.5</small></span></button>
+  <button class="side-card" data-go="profile"><span class="avatar">V</span><span><b>Veronica</b><small id="side-status">Claude Sonnet 5.5</small></span></button>
 </aside>
 
 <main id="main">
@@ -436,7 +436,7 @@ pre.code .add { color: #86efac; } pre.code .del { color: #fda4af; } pre.code .hu
   <button class="menu-row" data-menu="memory"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/></svg>Memory<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
   <button class="menu-row" data-menu="projects"><svg viewBox="0 0 24 24"><path d="M12 3 3 8l9 5 9-5zM3 13l9 5 9-5"/></svg>Projects<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
   <button class="menu-row" data-menu="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14.2 3h-4.4l-.4 2.6a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 2 1.2l.4 2.6h4.4l.4-2.6a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg>Settings<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
-  <div class="model-card"><b><i></i>Claude Opus 5.5</b><span>Deep reasoning on every request. Declined requests retry on a fallback model.</span></div>
+  <div class="model-card"><b><i></i>Claude Sonnet 5.5</b><span>Through OpenRouter: Sonnet for chat and research, Opus 5.5 for coding, MiMo-V2.6-Flash for helpers. Speaks with Fish Audio.</span></div>
   <button class="quit" id="quit"><svg viewBox="0 0 24 24"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 16l-4-4 4-4M6 12h10"/></svg>Quit Veronica</button>
 </aside>
 
@@ -949,7 +949,7 @@ $$('[data-expand]').forEach(b => b.addEventListener('click', () => b.classList.t
 $('#about-row').addEventListener('click', async () => {
   const a = (await call('about')) || {};
   openSheet('About', `<p><b style="color:var(--text);font-weight:500">Veronica</b>: your assistant for code, email, your calendar and research. One agent, separate from JARVIS and FRIDAY.</p>
-    <p>Thinks with ${esc(a.model || 'Claude Opus 5.5')}. Speaks with ${esc(a.voice || 'Fish Audio')}. Hears you on this PC; your audio is never recorded or sent.</p>
+    <p>Thinks with ${esc(a.model || 'Claude Sonnet 5.5')}. Speaks with ${esc(a.voice || 'Fish Audio')}. Hears you on this PC; your audio is never recorded or sent.</p>
     <p>Works in one project folder at a time and never in JARVIS's folders. Code changes wait for your keep or undo; emails are sent only when you say so.</p>
     <p>Folder: ${esc(a.folder || '')}</p>`);
 });
@@ -962,7 +962,7 @@ function renderConnections(c) {
     const el = $(sel); el.textContent = word(on, yes); el.classList.toggle('ok', !!on);
   });
   const parts = [c.gmail && 'Gmail', c.calendar && 'Calendar', c.search && 'Search'].filter(Boolean);
-  $('#side-status').textContent = parts.length ? parts.join(' · ') : 'Claude Opus 5.5';
+  $('#side-status').textContent = parts.length ? parts.join(' · ') : 'Claude Sonnet 5.5';
 }
 
 /* ----------------------------------------------------------------- notices */
@@ -1026,7 +1026,7 @@ setTimeout(() => {
     tasks: () => demoTasks,
     task: id => Object.assign({events: [{at: Date.now() / 1000 - 60, message: 'Started'}, {at: Date.now() / 1000, message: 'Saved the report'}]}, demoTasks.find(t => t.id === id)),
     memories: () => [{id: 1, kind: 'preference', content: 'Use British spelling in reports.', provenance: 'the owner, in conversation'}],
-    about: () => ({model: 'Claude Opus 5.5', voice: 'Fish Audio', folder: '(preview)'}),
+    about: () => ({model: 'Claude Sonnet 5.5', voice: 'Fish Audio', folder: '(preview)'}),
   });
   setTimeout(() => {
     window.veronica.hearingReady(true); window.veronica.info({tasks: demoTasks, unread: 12, events_today: 3});

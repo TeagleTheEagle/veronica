@@ -51,7 +51,7 @@ class SubAgent:
         
         # The subagent uses the main agent's LLM client but with a restricted toolset
         # We implement a tight loop here: Ask -> Tool -> Result -> Ask
-        max_rounds = 10
+        max_rounds = 40
         for _ in range(max_rounds):
             # We use the main agent's _ask logic but with the subagent's specific constraints
             # In a real implementation, we'd call a method that handles the LLM request
@@ -84,13 +84,15 @@ DEFAULT_SUBAGENTS = {
         "name": "Researcher",
         "description": "Specialist in web research, source verification, and cited reporting.",
         "system_prompt": "You are a world-class research assistant. Find authoritative sources, cross-reference facts, and provide precise citations.",
-        "tools": ["web_search", "fetch_url"]
+        "tools": ["web_search", "fetch_url", "remember"]
     },
     "coder": {
         "name": "Coder",
         "description": "Specialist in software engineering, debugging, and refactoring.",
-        "system_prompt": "You are an expert software engineer. Focus on correctness, efficiency, and adhering to the project's existing style.",
-        "tools": ["read_file", "search", "edit_file", "write_file", "run_tests"]
+        "system_prompt": "You are an expert software engineer. Read before you change, keep to the project's style, run the tests "
+                         "and the real commands (run_command) to prove the work, and report what passed and what did not.",
+        "tools": ["list_files", "read_file", "search", "edit_file", "write_file", "run_tests", "run_command",
+                  "start_process", "process_output", "stop_process", "list_processes", "web_search", "fetch_url"]
     },
     "secretary": {
         "name": "Secretary",

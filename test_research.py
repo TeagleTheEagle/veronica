@@ -213,6 +213,39 @@ def test_schedule_intervals():
             tasks.parse_every(bad)
 
 
+def test_research_runs_on_the_research_model_through_openrouter_with_its_own_key_only(monkeypatch):
+    # Claude Sonnet 5.5 (models.py, owner's guide 2026-10-13). Without the OpenRouter key the task stops; no other
+    # key goes to openrouter.ai.
+    monkeypatch.delenv('OPENROUTER_API_KEY', raising=False)
+    monkeypatch.setenv('OPENAI_API_KEY', 'not-for-openrouter')
+    with pytest.raises(RuntimeError, match='OPENROUTER_API_KEY'):
+        research.default_model()
+    monkeypatch.setenv('OPENROUTER_API_KEY', 'or-test-key')
+    model = research.default_model()
+    assert research.MODEL == 'anthropic/claude-sonnet-5.5' and model.model_name == research.MODEL
+    assert model.openai_api_base == 'https://openrouter.ai/api/v1'
+    assert model.openai_api_key.get_secret_value() == 'or-test-key'
+    assert model.extra_body == {'reasoning': {'effort': research.EFFORT, 'exclude': True}}
+
+
+def test_a_sonnet_turn_is_counted_at_sonnets_prices_and_an_unknown_model_at_the_dearest():
+    usage = {'input_tokens': 1000, 'output_tokens': 100, 'total_tokens': 1100, 'input_token_details': {'cache_read': 400}}
+    sonnet = AIMessage(content='x', usage_metadata=usage, response_metadata={'model_name': 'anthropic/claude-sonnet-5.5'})
+    assert research.cost_of(sonnet) == pytest.approx(600 * 2e-6 + 400 * 0.2e-6 + 100 * 10e-6)
+    haiku = AIMessage(content='x', usage_metadata=usage, response_metadata={'model_name': 'anthropic/claude-haiku-5.5'})
+    assert research.cost_of(haiku) == pytest.approx(600 * 0.1e-6 + 400 * 0.01e-6 + 100 * 0.5e-6)
+    other = AIMessage(content='x', usage_metadata=usage, response_metadata={'model_name': 'someone/else'})
+    assert research.cost_of(other) == pytest.approx(600 * 4e-6 + 400 * 0.2e-6 + 100 * 20e-6)
+
+
+def test_a_dropped_openrouter_connection_is_retried_later():
+    import httpx
+    import openai
+    request = httpx.Request('POST', 'https://openrouter.ai/api/v1/chat/completions')
+    assert tasks._transient(openai.APIConnectionError(request=request))
+    assert not tasks._transient(ValueError('bad'))
+
+
 def test_the_cost_of_a_fallback_served_turn_uses_each_models_prices():
     message = AIMessage(content='x', usage_metadata={'input_tokens': 0, 'output_tokens': 0, 'total_tokens': 0},
                         response_metadata={'usage': {'iterations': [

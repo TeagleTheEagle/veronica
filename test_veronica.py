@@ -52,6 +52,24 @@ class FakeClaude:
         self.script = list(script)
         self.requests = []
         self.beta = SimpleNamespace(messages=SimpleNamespace(stream=self._stream))
+        self.chat = SimpleNamespace(completions=SimpleNamespace(create=self._create))
+
+    def _create(self, **params):
+        """The same script, answered the way OpenRouter (OpenAI-style chat) answers. A scripted reply that is already
+        in that shape (it has choices) is given as it is."""
+        self.requests.append({**params, 'messages': list(params['messages'])})
+        reply = self.script.pop(0)
+        if isinstance(reply, Exception):
+            raise reply
+        if hasattr(reply, 'choices'):
+            return reply
+        words = ' '.join(b.text for b in reply.content if b.type == 'text') or None
+        calls = [SimpleNamespace(id=b.id, type='function',
+                                 function=SimpleNamespace(name=b.name, arguments=json.dumps(b.input)))
+                 for b in reply.content if b.type == 'tool_use'] or None
+        finish = {'max_tokens': 'length', 'tool_use': 'tool_calls'}.get(reply.stop_reason, 'stop')
+        return SimpleNamespace(choices=[SimpleNamespace(finish_reason=finish,
+                                                        message=SimpleNamespace(content=words, tool_calls=calls))])
 
     def _stream(self, **params):
         self.requests.append({**params, 'messages': list(params['messages'])})
@@ -199,11 +217,11 @@ def test_tool_input_is_checked_before_a_tool_runs():
             validate(name, given)
 
 
-def test_every_tool_streams_its_input_and_has_a_schema():
-    assert {t['name'] for t in agent.TOOLS} == set(agent.TOOL_SPECS)
+def test_every_tool_has_a_groq_function_schema():
+    assert {t['function']['name'] for t in agent.TOOLS} == set(agent.TOOL_SPECS)
     for definition in agent.TOOLS:
-        assert definition['eager_input_streaming'] is True
-        assert definition['input_schema']['type'] == 'object'
+        assert definition['type'] == 'function'
+        assert definition['function']['parameters']['type'] == 'object'
     for name in agent.TOOL_SPECS:
         assert hasattr(Veronica, 'tool_' + name)
 
@@ -277,14 +295,41 @@ def test_a_fix_that_passes_the_tests_is_applied_and_says_so(project):
     assert '+    return a + b' in reply.show
     assert (project / 'app.py').read_text(encoding='utf-8').endswith('a + b\n')
     request = veronica.client.requests[0]
-    assert request['model'] == 'claude-opus-5-5' and request['thinking'] == {'type': 'adaptive'}
-    assert request['fallbacks'] == 'default' and 'server-side-fallback-2026-07-01' in request['betas']
-    assert request['output_config'] == {'effort': agent.EFFORT}
+    assert request['model'] == agent.chat_model() and request['tool_choice'] == 'auto'
+    assert request['max_tokens'] == agent.REPLY_TOKENS and request['extra_body'] == agent.THINKING
+    assert request['messages'][0] == {'role': 'system', 'content': veronica.system_prompt}
 
     # Direct action: the write is already permanent, so nothing is left waiting for the owner.
     assert not veronica.changes.pending()
     assert veronica.respond('Keep it.').say == 'There is nothing waiting to be kept.'
     assert (project / 'app.py').read_text(encoding='utf-8').endswith('a + b\n')
+
+
+def test_the_model_is_read_when_she_asks_so_the_env_file_counts(project, monkeypatch):
+    # app.py imports agent.py before it reads .env, so OPENROUTER_MODEL must be read at each request, not at import.
+    # One model per job from models.py (owner's guide, 2026-10-13); a .env line may only pick another listed model.
+    monkeypatch.delenv('OPENROUTER_MODEL', raising=False)
+    monkeypatch.setenv('VERONICA_MODEL', 'openai/gpt-oss-120b')
+    assert agent.chat_model() == agent.DEFAULT_MODEL == 'anthropic/claude-sonnet-5.5'
+    monkeypatch.setenv('OPENROUTER_MODEL', 'qwen/qwen3.8-max-0902')       # not on the list: ignored
+    assert agent.chat_model() == 'anthropic/claude-sonnet-5.5'
+    monkeypatch.setenv('OPENROUTER_MODEL', 'anthropic/claude-haiku-5.5')
+    veronica = make(project, message(text('Hello.')))
+    assert veronica.respond('hello').say == 'Hello.'
+    assert veronica.client.requests[0]['model'] == 'anthropic/claude-haiku-5.5'
+
+
+def test_she_talks_to_openrouter_with_its_own_key_only(project, monkeypatch):
+    for name in ('OPENROUTER_API_KEY', 'GROQ_API_KEY', 'OPENAI_API_KEY'):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv('OPENAI_API_KEY', 'not-for-openrouter')
+    veronica = Veronica(projects_file=project / 'no-projects.json')
+    with pytest.raises(agent.VeronicaError, match='OPENROUTER_API_KEY'):
+        veronica.client
+    monkeypatch.setenv('OPENROUTER_API_KEY', 'or-test-key')
+    veronica = Veronica(projects_file=project / 'no-projects.json')
+    client = veronica.client   # made here; nothing is sent until she asks
+    assert str(client.base_url).rstrip('/') == 'https://openrouter.ai/api/v1' and client.api_key == 'or-test-key'
 
 
 def test_undo_is_gone_because_writes_are_permanent(project):
@@ -336,12 +381,16 @@ def test_api_problems_are_said_plainly(project, monkeypatch):
     assert slept == [2, 4, 8]          # the exponential backoff, without actually waiting for it
 
 
-def test_an_unreadable_tool_request_is_said_plainly(project):
-    # Three unreadable streams and no provider error: the owner is told what actually went wrong,
-    # rather than "failed after 3 attempts. Last error: None".
-    veronica = make(project, *(ValueError('a streamed tool request that could not be read') for _ in range(3)))
-    with pytest.raises(agent.VeronicaError, match='could not read, three times running'):
-        veronica.respond('hello')
+def test_an_unreadable_tool_request_goes_back_to_her(project):
+    # Groq gives a tool call's input as JSON text: text that is not JSON goes back to her as an error, not a crash.
+    call = SimpleNamespace(id='call_1', type='function',
+                           function=SimpleNamespace(name='read_file', arguments='{not json'))
+    unreadable = SimpleNamespace(choices=[SimpleNamespace(finish_reason='tool_calls',
+                                                          message=SimpleNamespace(content=None, tool_calls=[call]))])
+    veronica = make(project, unreadable, message(text('Let me try that again.')))
+    assert veronica.respond('read app.py').say == 'Let me try that again.'
+    result, = [m for m in veronica.client.requests[1]['messages'] if m['role'] == 'tool']
+    assert result['tool_call_id'] == 'call_1' and 'read_file needs path' in result['content']
 
 
 def test_without_tests_she_says_they_could_not_be_checked(project):

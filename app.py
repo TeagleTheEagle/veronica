@@ -23,6 +23,7 @@ import threading
 import time
 from pathlib import Path
 
+import models
 import safety
 import voice as speech
 from agent import Reply, ToolError, Veronica, VeronicaError
@@ -82,7 +83,7 @@ class Session:
             self._info_thread.start()
         import calendar_feed
         import gmail
-        return {'listen_for_name': self.settings['listen_for_name'], 'model': 'Claude Opus 5.5',
+        return {'listen_for_name': self.settings['listen_for_name'], 'model': models.label(models.chat_model()),
                 'connections': {'gmail': gmail.configured(), 'calendar': calendar_feed.configured(),
                                 'search': bool(os.environ.get('BRAVE_API_KEY', '').strip())}}
 
@@ -153,14 +154,8 @@ class Session:
 
     def _info_loop(self):
         """Keep the page's task list and suggestions fresh: tasks often, mail and calendar counts now and then."""
-        import tasks
         mail_at = 0.0
-        try:
-            store = self.veronica.store
-            if any(t['status'] in ('queued', 'running') for t in store.list_tasks(limit=50)):
-                tasks.ensure_worker(store)
-        except Exception:
-            log.exception('worker check')
+        self.startup_check()
         while not self.stopping.is_set():
             info = {'tasks': [], 'pending': self.veronica.status()}
             try:
@@ -174,6 +169,25 @@ class Session:
             self.ui.info(info)
             self._info_now.wait(INFO_EVERY)
             self._info_now.clear()
+
+    def startup_check(self):
+        """Her health check when the window opens (health.py): it starts a worker for waiting tasks, and the page is
+        told only when something is wrong. Returns the report, or None when the check itself failed."""
+        import health
+        try:
+            report = health.check(store=self.veronica.store, root=self.veronica.home)
+        except Exception:
+            log.exception('health check')
+            return None
+        log.info('health check: %s\n%s', report.summary(), report.text())
+        bad = [c for c in report.checks if c.ok is False]
+        open_repairs = [c for c in report.checks if c.name == 'repairs' and c.ok is None]
+        if bad:
+            self.ui.notice('Health check: ' + '; '.join(f'{c.name}: {c.detail}' for c in bad))
+        if open_repairs:
+            self.ui.notice(f'A repair of my own code was left open ({open_repairs[0].detail}). Ask me to finish it or '
+                           'roll it back.')
+        return report
 
     def _counts(self):
         import datetime
@@ -520,7 +534,8 @@ class Bridge:
         self._session._info_now.set()
 
     def about(self):
-        return {'folder': str(HERE), 'model': 'Claude Opus 5.5', 'voice': getattr(self._session.voice, 'name', '')}
+        return {'folder': str(HERE), 'model': models.label(models.chat_model()),
+                'voice': getattr(self._session.voice, 'name', '')}
 
     def quit(self):
         self._session.stop()

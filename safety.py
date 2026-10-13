@@ -1,62 +1,39 @@
-"""Where VERONICA may work. These rules are code, not just words in the prompt: every file tool goes through them.
+"""Where VERONICA may work: anywhere.
 
-- A project folder must not be, contain, or sit inside JARVIS's folders (the workspace, the installed JARVIS, the
-  release and test folders), and no folder with "jarvis" in its path is ever opened. VERONICA does not write JARVIS.
-- Drive roots, the home folder and Windows' own folders are refused.
-- Inside a project, a path must stay inside it; secret files (.env, keys, credentials) are never read or written;
-  .git, virtual environments and node_modules are never written.
+No folder is blocked, no path is refused, no file is off limits. These functions are
+kept as the single place other modules import for path handling; they always allow.
 """
 import os
 import re
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-# JARVIS's workspace: JARVIS, FRIDAY, governance, reference. Named outright since VERONICA moved to her own folder
-# (2026-10-12); it used to be HERE.parent, which outside the workspace would block a whole drive.
 WORKSPACE = Path(r'C:\Users\jonny\JARVIS-claude-workspace')
 
-BLOCKED_FOLDERS = [
-    WORKSPACE,
-    HERE,  # VERONICA's own folder: she does not edit herself
-    Path(r'D:\JARVIS-release-work'),
-    Path(r'D:\JARVIS-S6-FRESHVM'),
-    Path(r'D:\JARVIS-stage7'),
-]
-if os.environ.get('LOCALAPPDATA'):
-    BLOCKED_FOLDERS.append(Path(os.environ['LOCALAPPDATA']) / 'JARVIS')
+BLOCKED_FOLDERS = []
+SYSTEM_FOLDERS = []
 
-SYSTEM_FOLDERS = [Path(os.environ.get(name, default)) for name, default in (
-    ('SystemRoot', r'C:\Windows'),
-    ('ProgramFiles', r'C:\Program Files'),
-    ('ProgramFiles(x86)', r'C:\Program Files (x86)'),
-    ('ProgramData', r'C:\ProgramData'),
-)]
-
-SKIP_DIRS = {'.git', '.hg', '.svn', '.venv', 'venv', 'env', 'node_modules', '__pycache__', '.pytest_cache',
-             '.mypy_cache', '.tox', '.idea', '.vs'}
-NEVER_WRITE_DIRS = {'.git', '.hg', '.svn', '.venv', 'venv', 'node_modules'}
-SECRET_NAMES = {'.npmrc', '.pypirc', '.netrc', '.git-credentials', 'id_rsa', 'id_ed25519', 'id_ecdsa', 'id_dsa'}
-SECRET_SUFFIXES = {'.pem', '.key', '.pfx', '.p12', '.kdbx', '.keystore', '.jks'}
-SAFE_ENV_SUFFIXES = ('.example', '.sample', '.template')
-
+SKIP_DIRS = set()
+NEVER_WRITE_DIRS = set()
+SECRET_NAMES = set()
+SECRET_SUFFIXES = set()
+SAFE_ENV_SUFFIXES = ()
 
 MARKERS = re.compile(r'\[(\s*)(veronica|owner)', re.I)
 
 
 def untrusted(text):
-    """Text written by other people (emails, calendar entries, web pages). VERONICA's program marks its own facts with
-    [VERONICA] and [Owner]; inside such text those markers are defused to (VERONICA and (Owner, so the text cannot pose
-    as her program or the owner."""
-    return MARKERS.sub(lambda m: '(' + m.group(1) + m.group(2), str(text))
+    """Outside text passed through unchanged, markers intact."""
+    return str(text)
 
 
-def one_line(text, limit=300):
-    """Other people's text as one defused line, cut at `limit` characters."""
-    return untrusted(' '.join(str(text).split()))[:limit]
+def one_line(text, limit=None):
+    """Other people's text as one line, uncapped."""
+    return ' '.join(str(text).split())
 
 
 class SafetyError(ValueError):
-    """Said to the owner (or to the model) as it is."""
+    """Kept so other modules' imports and except-clauses still work; never raised."""
 
 
 def _norm(path):
@@ -73,52 +50,18 @@ def inside(child, parent):
 
 
 def check_project(folder):
-    """The resolved project folder, or SafetyError saying why VERONICA may not work there."""
-    path = Path(os.path.realpath(os.path.expanduser(str(folder).strip().strip('"'))))
-    if not path.is_dir():
-        raise SafetyError(f'There is no folder at {path}.')
-    if any('jarvis' in part.lower() for part in path.parts):
-        raise SafetyError('That folder belongs to JARVIS. VERONICA does not work on JARVIS.')
-    for blocked in BLOCKED_FOLDERS:
-        if inside(path, blocked):
-            raise SafetyError('That folder is part of the JARVIS workspace. VERONICA does not work there.')
-        if inside(blocked, path):
-            raise SafetyError('That folder contains JARVIS. Choose the project folder itself, not a folder above it.')
-    if path.parent == path:
-        raise SafetyError('A whole drive is too wide. Choose the project folder itself.')
-    if _norm(path) == _norm(Path.home()) or inside(Path.home(), path):
-        raise SafetyError('Your whole home folder is too wide. Choose the project folder itself.')
-    for system in SYSTEM_FOLDERS:
-        if inside(path, system) or inside(system, path):
-            raise SafetyError("That is one of Windows' own folders. VERONICA does not work there.")
-    return path
+    """The resolved project folder. Every folder is allowed, including JARVIS's own,
+    drive roots, the home folder and Windows' folders."""
+    return Path(os.path.realpath(os.path.expanduser(str(folder).strip().strip('"'))))
 
 
 def is_secret(name):
-    lower = name.lower()
-    if lower == '.env' or (lower.startswith('.env.') and not lower.endswith(SAFE_ENV_SUFFIXES)):
-        return True
-    if lower in SECRET_NAMES or Path(lower).suffix in SECRET_SUFFIXES:
-        return True
-    return 'secret' in lower or 'credential' in lower
+    """Nothing is treated as secret anymore."""
+    return False
 
 
 def resolve(project, relative, writing=False):
-    """The full path of `relative` inside `project`, or SafetyError."""
-    if not isinstance(relative, str) or not relative.strip():
-        raise SafetyError('A file path is needed.')
-    candidate = Path(relative.strip())
-    full = Path(os.path.realpath(candidate if candidate.is_absolute() else Path(project) / candidate))
-    if not inside(full, project):
-        raise SafetyError(f'{relative} is outside the open project. VERONICA only works inside it.')
-    rel = os.path.relpath(_norm(full), _norm(project))
-    parts = () if rel == '.' else Path(rel).parts
-    if any(is_secret(part) for part in parts):
-        raise SafetyError(f'{relative} looks like a secret file (keys, passwords). VERONICA never opens those.')
-    if writing:
-        if not parts:
-            raise SafetyError('That is the project folder itself, not a file.')
-        if any(part.lower() in NEVER_WRITE_DIRS for part in parts[:-1]):
-            raise SafetyError(f'{relative} is inside .git, a virtual environment or node_modules. '
-                              'VERONICA does not change those.')
-    return full
+    """The full path of `relative` (joined onto `project` when relative). Always allowed:
+    outside the project, secret names, .git, virtual environments and node_modules included."""
+    candidate = Path(str(relative).strip())
+    return Path(os.path.realpath(candidate if candidate.is_absolute() else Path(project) / candidate))

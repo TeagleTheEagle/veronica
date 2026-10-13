@@ -11,9 +11,12 @@ own scratch files (kept in the task's checkpoints, not on disk), and has exactly
   saved twice (citations.save_report keeps an operation per task).
 
 Limits are code, in GuardMiddleware, checked before every model call: the owner's cancel, a wall-clock deadline, and a
-cost ceiling computed from the token usage Claude reports. ModelCallLimitMiddleware caps model calls per task (its
+cost ceiling computed from the token usage the model reports. ModelCallLimitMiddleware caps model calls per task (its
 thread count is kept in the checkpoint, so a restart does not reset it). Web content is untrusted data; the Brave key
-and the Anthropic key never enter the prompt, the checkpoints or the log.
+and the OpenRouter key never enter the prompt, the checkpoints or the log.
+
+The model is Claude Sonnet 5.5 through OpenRouter (models.py; the owner's model guide of 2026-10-13). Earlier that
+day it was Qwen 3.8 Max, and Claude Opus 5.5 direct before that.
 
 tasks.py runs this agent durably in a worker process (durability="sync", one LangGraph thread per task) and decides
 success from evidence: a saved, verified report on disk with the hash recorded when it was written.
@@ -30,6 +33,7 @@ from typing import Any, Callable, NotRequired
 import uuid
 
 import citations
+import models
 import safety
 import store as store_mod
 import web
@@ -38,7 +42,8 @@ logging.getLogger('deepagents.middleware._video').setLevel(logging.ERROR)  # a h
 # LangGraph hands the run's context to pydantic, which warns that it is not a plain value; it is not stored.
 warnings.filterwarnings('ignore', message='Pydantic serializer warnings', category=UserWarning)
 
-MODEL = os.environ.get('VERONICA_MODEL', 'claude-opus-5-5')
+OPENROUTER_BASE = models.OPENROUTER_BASE
+MODEL = models.research_model()    # Claude Sonnet 5.5 unless OPENROUTER_RESEARCH_MODEL names another listed model
 EFFORT = os.environ.get('VERONICA_RESEARCH_EFFORT', os.environ.get('VERONICA_EFFORT', 'high'))
 MAX_MODEL_CALLS = int(os.environ.get('VERONICA_TASK_MAX_STEPS', '40'))
 MAX_MINUTES = float(os.environ.get('VERONICA_TASK_MAX_MINUTES', '20'))
@@ -46,8 +51,20 @@ MAX_COST_USD = float(os.environ.get('VERONICA_TASK_MAX_COST_USD', '3.00'))
 EXCERPT = 12_000          # characters of a source given to the agent at once
 MAX_SOURCES = 12
 
-# US dollars per token. Claude Opus 5.5 (and, for turns a fallback served, Claude Opus 5), per the published prices.
+# US dollars per token, per OpenRouter's model list of 2026-10-13 (per million: Sonnet 5.5 2 in / 10 out, Opus 5.5
+# 4 / 20, Haiku 5.5 0.10 / 0.50, Gemini 3.1 Flash-Lite 0.25 / 1.50). A model name not listed here is counted at Opus
+# 5.5's rates, so the cost limit never counts a call as cheaper than it might be.
 PRICES = {
+    'anthropic/claude-sonnet-5.5': {'input': 2e-6, 'cache_write_5m': 2.5e-6, 'cache_write_1h': 4e-6,
+                                    'cache_read': 0.2e-6, 'output': 10e-6},
+    'anthropic/claude-opus-5.5': {'input': 4e-6, 'cache_write_5m': 5e-6, 'cache_write_1h': 8e-6, 'cache_read': 0.4e-6,
+                                  'output': 20e-6},
+    'anthropic/claude-haiku-5.5': {'input': 0.1e-6, 'cache_write_5m': 0.125e-6, 'cache_write_1h': 0.2e-6,
+                                   'cache_read': 0.01e-6, 'output': 0.5e-6},
+    'xiaomi/mimo-v2.6-flash': {'input': 0.14e-6, 'cache_write_5m': 0.14e-6, 'cache_write_1h': 0.14e-6,
+                               'cache_read': 0.14e-6, 'output': 0.28e-6},
+    'google/gemini-3.1-flash-lite': {'input': 0.25e-6, 'cache_write_5m': 0.25e-6, 'cache_write_1h': 0.25e-6,
+                                     'cache_read': 0.025e-6, 'output': 1.5e-6},
     'claude-opus-5-5': {'input': 4e-6, 'cache_write_5m': 5e-6, 'cache_write_1h': 8e-6, 'cache_read': 0.2e-6,
                         'output': 20e-6},
     'claude-opus-5': {'input': 5e-6, 'cache_write_5m': 6.25e-6, 'cache_write_1h': 10e-6, 'cache_read': 0.5e-6,
@@ -295,10 +312,17 @@ def _middleware():
 # ----- building the agent ------------------------------------------------------------------------------------------
 
 def default_model():
-    from langchain_anthropic import ChatAnthropic
-    return ChatAnthropic(model=MODEL, max_tokens=16000, timeout=600.0, max_retries=3, thinking={'type': 'adaptive'},
-                         output_config={'effort': EFFORT}, betas=['server-side-fallback-2026-07-01'],
-                         model_kwargs={'fallbacks': 'default'}, streaming=False)
+    """The research model (models.py) through OpenRouter. The key is passed explicitly: without OPENROUTER_API_KEY the task stops here, and no
+    other key (such as an OpenAI one) is ever sent to openrouter.ai in its place."""
+    from langchain_openai import ChatOpenAI
+    base, key_name = models.endpoint(MODEL)          # OpenRouter, or ASI:One's own endpoint for asi1-mini
+    key = os.environ.get(key_name)
+    if not key:
+        raise RuntimeError(f'{key_name} is missing. Put it in the .env file.')
+    extra = models.extra_body(MODEL, {'reasoning': {'effort': EFFORT, 'exclude': True}})
+    return ChatOpenAI(model=MODEL, api_key=key, base_url=base, max_tokens=16000, timeout=600.0, max_retries=3,
+                      **({'extra_body': extra} if extra else {}),
+                      default_headers={'X-Title': 'VERONICA research'}, streaming=False)
 
 
 def checkpointer(path=store_mod.CHECKPOINTS_PATH):
