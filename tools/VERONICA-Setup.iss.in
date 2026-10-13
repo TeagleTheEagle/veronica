@@ -71,7 +71,6 @@ Type: files; Name: "{app}\current.json"
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   Code: Integer;
-  Result: String;
 begin
   if CurStep = ssPostInstall then
   begin
