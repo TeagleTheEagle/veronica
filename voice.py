@@ -22,6 +22,7 @@ import urllib.request
 import uuid
 from pathlib import Path
 
+import paths
 import safety
 
 RATE = 16000
@@ -31,7 +32,7 @@ MAX_FRAMES = 300             # 30 s
 MIN_SPEECH = 4               # frames of speech for it to count (0.4 s)
 PRE_ROLL = 3                 # frames kept from before speech started
 FOLLOW_UP = 7.0              # seconds after "Yes?" in which no name is needed
-MODEL_DIR = safety.HERE / 'models' / 'base.en'
+MODEL_DIR = paths.MODELS / 'base.en'
 FISH_URL = 'https://api.fish.audio/v1/tts'
 NAMES = ('veronica', 'veronika', 'verronica', 'veronicka', 'varonica')
 GREETINGS = ('hey', 'hi', 'hello', 'ok', 'okay', 'yo')

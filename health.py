@@ -31,10 +31,11 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import paths
 import safety
 
-HERE = safety.HERE
-PYTHON = HERE / '.venv' / 'Scripts' / 'python.exe'
+HERE = paths.PROGRAM
+PYTHON = paths.PYTHON
 REPAIRS = HERE / 'data' / 'self-repair'
 OWN_PATTERNS = ('*.py', 'pytest.ini', 'requirements.txt', '*.md', '.env.example', 'ui/*', 'launcher/*')
 MODULES = ('agent', 'app', 'changes', 'calendar_feed', 'citations', 'context_state', 'gmail', 'goals', 'hands', 'health',
@@ -149,7 +150,7 @@ def check(store=None, root=HERE, python=None, imports=True, modules=MODULES, sta
     except Exception as error:
         report.checks.append(Check('database', False, f'{type(error).__name__}: {str(error)[:200]}'))
 
-    model = root / 'models'
+    model = paths.MODELS if root == paths.PROGRAM else root / 'models'
     has_model = any(model.rglob('model.bin')) if model.is_dir() else False
     report.checks.append(Check('speech model', True if has_model else None,
                                'in place' if has_model else 'not found (she will type, not hear)'))

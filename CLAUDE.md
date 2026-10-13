@@ -45,6 +45,17 @@ orb window (`VERONICA.exe` -> `.venv\Scripts\pythonw.exe app.py`), Gmail and Cal
   approved work (approved proposals first, each at most 3 heartbeats), and a daily review that may propose up to 2
   ideas. Each run is a fresh conversation capped at 40 model steps (review 15). Tests: `test_goals.py`.
   Planned next: stage 4 PC control.
+- **Installed app (owner 2026-10-14: "a real installed app: installer, Start Menu, uninstall, her own folder in
+  AppData, updates like JARVIS"; "a separate VERONICA app until the merge"):** `paths.py` says where the program and
+  her data are: in this coding folder both are here (as before); in an installed release the program is
+  `%LOCALAPPDATA%\VERONICA\releases\<id>\app` (marked by `installed-release.json`) and her data (`.env`, settings,
+  `data\`, `reports\`) is `%LOCALAPPDATA%\VERONICA`. Every file path goes through `paths`. `tools\build_release.py
+  --version X` (clean tree only) makes `D:\VERONICA-release-work\VERONICA-Setup-X.exe` with Inno Setup 6: her code
+  from HEAD, the JARVIS-pinned Python 3.12.10 embeddable plus her `.venv` packages, the speech model, and the launcher
+  `launcher\VERONICA-installed.cs`. The Setup's step `installer.py install` switches `current.json`, keeps one
+  previous release, removes older ones, and on the first install into the real home COPIES her data from this folder
+  (never in tests or a sandbox home: `migrate_from` must be passed explicitly). Uninstall keeps her data. An update
+  is the next version's Setup. Tests: `test_installed_app.py`. Installing is the owner's step (AppData).
 - **Known test failures (2026-10-13):** 20 tests fail on the uncommitted working tree, the same 20 before and after
   the Qwen switch: the safety, approval-before-sending and marker-defusing tests (the rules they check were removed
   in the uncommitted `safety.py`/`agent.py` of 2026-10-12, which the owner said to leave as they are), and the speech

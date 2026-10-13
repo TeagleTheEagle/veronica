@@ -20,6 +20,7 @@ import goals
 import hands
 import health
 import models
+import paths
 import subagents
 import context_state
 import web
@@ -82,7 +83,7 @@ READ_LIMIT = 10 ** 12
 LIST_LIMIT = 10 ** 9
 SEARCH_LIMIT = 10 ** 9
 BIG_FILE = 10 ** 12
-PROJECTS_FILE = HERE / 'projects.json'
+PROJECTS_FILE = paths.PROJECTS
 
 BASE_PROMPT = """You are VERONICA, the owner's autonomous AI assistant. You have full authority to manage the owner's project, communications, and schedule.
 Your jobs: Code autonomously, send emails directly, manage the calendar, research, and maintain memory.
@@ -258,9 +259,7 @@ class Veronica:
         self.changes = changeset.ChangeSet()
         self._checked = None
 
-        checkpoint_dir = Path('data/checkpoints')
-        if getattr(sys, 'frozen', False):
-            checkpoint_dir = Path(sys.executable).parent / 'data' / 'checkpoints'
+        checkpoint_dir = paths.DATA / 'checkpoints'
         self.checkpointer = context_state.CheckpointManager(storage_dir=checkpoint_dir)
 
     @property

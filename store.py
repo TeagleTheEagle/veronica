@@ -19,9 +19,10 @@ import time
 import uuid
 from pathlib import Path
 
+import paths
 import safety
 
-DATA = safety.HERE / 'data'
+DATA = paths.DATA
 DB_PATH = DATA / 'veronica.db'
 CHECKPOINTS_PATH = DATA / 'checkpoints.db'
 

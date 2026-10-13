@@ -9,17 +9,13 @@ import os
 import sys
 from pathlib import Path
 
-# PyInstaller bundles assets into a temporary folder stored in sys._MEIPASS
-if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
-    BASE_DIR = Path(sys._MEIPASS)
-else:
-    BASE_DIR = Path(__file__).resolve().parent
+import paths
 
-HERE = BASE_DIR
+HERE = Path(__file__).resolve().parent
 EXIT_WORDS = {'exit', 'quit', 'goodbye', 'bye'}
 
 
-def load_env(path=HERE / '.env'):
+def load_env(path=paths.ENV_FILE):
     """KEY=VALUE lines from VERONICA's own .env into the environment. Variables already set win; values are never
     printed."""
     if not path.is_file():

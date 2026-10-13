@@ -17,9 +17,10 @@ import tempfile
 import time
 from pathlib import Path
 
+import paths
 import safety
 
-REPORTS = safety.HERE / 'reports'
+REPORTS = paths.REPORTS
 MIN_SOURCES = 2
 MIN_QUOTE_WORDS = 5
 CITE = re.compile(r'\[(\d+(?:\s*[,;–-]\s*\d+)*)\]')

@@ -33,6 +33,7 @@ import threading
 import time
 import uuid
 
+import paths
 import store as store_mod
 
 log = logging.getLogger('veronica.tasks')
@@ -265,7 +266,7 @@ def ensure_worker(db, python=None):
     if db.live_workers():
         return False
     here = os.path.dirname(os.path.abspath(__file__))
-    python = python or os.path.join(here, '.venv', 'Scripts', 'pythonw.exe')
+    python = python or str(paths.PYTHONW)
     if not os.path.isfile(python):
         python = sys.executable
     flags = 0
@@ -299,7 +300,7 @@ def main(argv=None):
             pass
     import veronica
     veronica.load_env()
-    logging.basicConfig(filename=str(store_mod.DATA.parent / 'veronica.log'), level=logging.INFO,
+    logging.basicConfig(filename=str(paths.LOG), level=logging.INFO,
                         format='%(asctime)s %(levelname)s %(name)s %(message)s')
     for noisy in ('httpx', 'httpx2', 'anthropic', 'langchain_anthropic'):
         logging.getLogger(noisy).setLevel(logging.WARNING)

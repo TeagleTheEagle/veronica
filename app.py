@@ -24,6 +24,7 @@ import time
 from pathlib import Path
 
 import models
+import paths
 import safety
 import voice as speech
 from agent import Reply, ToolError, Veronica, VeronicaError
@@ -36,8 +37,8 @@ BEAT_POLL = 60             # seconds between "is a heartbeat due?" checks
 HERE = Path(__file__).resolve().parent
 PAGE = HERE / 'ui' / 'index.html'
 ICON = HERE / 'launcher' / 'veronica.ico'
-SETTINGS = HERE / 'settings.json'
-LOG = HERE / 'veronica.log'
+SETTINGS = paths.SETTINGS
+LOG = paths.LOG
 SPEAK_LIMIT = 180          # seconds to wait for the page to finish playing one reply
 NOISE = {'', 'you', 'thank you', 'thanks', 'thanks for watching', 'bye', 'hmm', 'um', 'uh', 'mm', 'oh'}
 
@@ -643,7 +644,7 @@ class Bridge:
         self._session.beat_now()
 
     def about(self):
-        return {'folder': str(HERE), 'model': models.label(models.chat_model()),
+        return {'folder': str(paths.HOME), 'version': paths.VERSION, 'model': models.label(models.chat_model()),
                 'voice': getattr(self._session.voice, 'name', '')}
 
     def quit(self):

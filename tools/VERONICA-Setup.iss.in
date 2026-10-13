@@ -1,0 +1,87 @@
+; VERONICA-Setup (tools\build_release.py fills the @NAME@ fields and compiles a copy with Inno Setup 6).
+; Installs or updates VERONICA per user, without administrator rights, into %LOCALAPPDATA%\VERONICA:
+;   VERONICA.exe (the launcher), releases\@RELEASE_ID@\ (her program, her Python, the speech model).
+; Then runs the release's own installer.py: current.json points at the new release, the one before is kept as the
+; way back, older releases are removed, and on the first install her data is copied from the coding folder.
+; Registers "VERONICA" in Settings > Apps > Installed apps; Uninstall removes the program and keeps her data
+; (.env, settings, memories, goals, reports) in %LOCALAPPDATA%\VERONICA.
+; Switches: /VERYSILENT /SUPPRESSMSGBOXES /NORESTART; /DIR=<folder> (a sandbox install home, for rehearsals).
+
+#define MyAppGuid "6E1B7C40-2F5A-4C83-9B0E-5D7A1F3C8E24"
+
+[Setup]
+AppId={{#MyAppGuid}
+AppName=VERONICA
+AppVersion=@VERSION@
+AppVerName=VERONICA @VERSION@
+AppPublisher=Teague Industries
+AppComments=VERONICA release @RELEASE_ID@
+DefaultDirName={localappdata}\VERONICA
+UsePreviousAppDir=yes
+DisableDirPage=yes
+DisableProgramGroupPage=yes
+PrivilegesRequired=lowest
+OutputDir=@OUTPUT_DIR@
+OutputBaseFilename=@OUTPUT_NAME@
+SetupIconFile=@ICON@
+UninstallDisplayName=VERONICA
+UninstallDisplayIcon={app}\VERONICA.exe
+Compression=lzma2/normal
+SolidCompression=yes
+LZMAUseSeparateProcess=yes
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
+WizardStyle=modern
+ShowLanguageDialog=no
+CloseApplications=yes
+CloseApplicationsFilter=VERONICA.exe,pythonw.exe
+RestartApplications=no
+SetupLogging=yes
+MinVersion=10.0
+VersionInfoVersion=@VERSION_QUAD@
+VersionInfoCompany=Teague Industries
+VersionInfoDescription=VERONICA Setup
+VersionInfoProductName=VERONICA
+VersionInfoProductVersion=@VERSION_QUAD@
+
+[Languages]
+Name: "english"; MessagesFile: "compiler:Default.isl"
+
+[Tasks]
+Name: "desktopicon"; Description: "Put VERONICA on the desktop"; Flags: unchecked
+
+[Files]
+Source: "@STAGE@\VERONICA.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "@STAGE@\releases\@RELEASE_ID@\*"; DestDir: "{app}\releases\@RELEASE_ID@"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+[Icons]
+Name: "{userprograms}\VERONICA"; Filename: "{app}\VERONICA.exe"; WorkingDir: "{app}"; Comment: "VERONICA"
+Name: "{userdesktop}\VERONICA"; Filename: "{app}\VERONICA.exe"; WorkingDir: "{app}"; Tasks: desktopicon
+
+[Run]
+; the install step itself runs in [Code] below (ssPostInstall), before this page
+Filename: "{app}\VERONICA.exe"; Description: "Open VERONICA now"; Flags: nowait postinstall skipifsilent
+
+[UninstallDelete]
+; the program only: her data (.env, settings.json, projects.json, veronica.log, data\, reports\) is kept
+Type: filesandordirs; Name: "{app}\releases"
+Type: files; Name: "{app}\current.json"
+
+[Code]
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  Code: Integer;
+  Result: String;
+begin
+  if CurStep = ssPostInstall then
+  begin
+    { the install step's answer, for the record }
+    Exec(ExpandConstant('{cmd}'), '/C ""' + ExpandConstant('{app}\releases\@RELEASE_ID@\python\python.exe') +
+         '" -B "' + ExpandConstant('{app}\releases\@RELEASE_ID@\app\installer.py') + '" install --home "' +
+         ExpandConstant('{app}') + '" --release @RELEASE_ID@ > "' + ExpandConstant('{app}\setup-result.json') + '""',
+         '', SW_HIDE, ewWaitUntilTerminated, Code);
+    if Code <> 0 then
+      MsgBox('VERONICA could not finish setting up. The details are in ' + ExpandConstant('{app}\setup-result.json') + '.',
+             mbError, MB_OK);
+  end;
+end;

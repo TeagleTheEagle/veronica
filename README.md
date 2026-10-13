@@ -148,6 +148,14 @@ Her helpers (researcher, secretary) use Xiaomi MiMo-V2.6-Flash ($0.14 / $0.28 pe
 Flash-Lite (a different maker, so an Anthropic outage does not take the backup down too). These lines (and
 `OPENROUTER_HELPER_MODEL` for the helpers) only accept models from the list in `models.py`.
 
+### The installed app
+
+`VERONICA-Setup-<version>.exe` installs Veronica like any Windows app: Start Menu, Settings > Apps (Uninstall), her
+own folder `%LOCALAPPDATA%\VERONICA` with her own Python, so she no longer needs this folder to run. The first install
+copies your keys, settings, memories, goals and reports from this folder (they stay here too). An update is simply the
+next version's Setup: your data is kept, and the version before is kept as a way back. Uninstall removes the program
+and keeps your data. To build a Setup: commit, then `.venv\Scripts\python.exe tools\build_release.py --version 1.0.0`.
+
 ### Goals, proposals and her heartbeat
 
 Open **Goals** in the window. Veronica suggests fixes, improvements, tasks and goals there; **nothing she suggests

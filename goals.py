@@ -24,10 +24,11 @@ import sys
 import threading
 import time
 
+import paths
 import safety
 
 HERE = safety.HERE
-CONFIG = HERE / 'data' / 'heartbeat.json'
+CONFIG = paths.DATA / 'heartbeat.json'
 DEFAULT_MINUTES = 60
 MIN_MINUTES = 15
 WORK_ROUNDS = 40          # model steps one heartbeat run may take (the owner's chat has no limit; this runs unattended)
