@@ -144,8 +144,8 @@ class Session:
         self._info_now.set()
         return goal['id']
 
-    def heartbeat_settings(self, on=None, minutes=None, review=None):
-        return self._heartbeat().set_config(on=on, minutes=minutes, review=review)
+    def heartbeat_settings(self, on=None, minutes=None, review=None, hands=None):
+        return self._heartbeat().set_config(on=on, minutes=minutes, review=review, hands=hands)
 
     def beat_now(self):
         self._beat_now.set()
@@ -635,13 +635,29 @@ class Bridge:
     def add_goal(self, title):
         return self._session.add_goal(str(title or '').strip()[:200])
 
-    def heartbeat_settings(self, on=None, minutes=None, review=None):
+    def heartbeat_settings(self, on=None, minutes=None, review=None, hands=None):
         return self._session.heartbeat_settings(on=None if on is None else bool(on),
                                                 minutes=None if minutes is None else int(minutes),
-                                                review=None if review is None else bool(review))
+                                                review=None if review is None else bool(review),
+                                                hands=None if hands is None else bool(hands))
 
     def beat_now(self):
         self._session.beat_now()
+
+    def allow_pc(self):
+        self._session._reply(self._session.veronica.allow_pc())
+        return True
+
+    def deny_pc(self):
+        self._session._reply(self._session.veronica.deny_pc())
+        return True
+
+    def hands(self, on):
+        veronica = self._session.veronica
+        veronica.hands_on = bool(on)
+        veronica.notes.append('[Owner] switched her hands ' + ('on.' if on else 'off.'))
+        self._session._info_now.set()
+        return veronica.hands_on
 
     def about(self):
         return {'folder': str(paths.HOME), 'version': paths.VERSION, 'model': models.label(models.chat_model()),

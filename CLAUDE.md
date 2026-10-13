@@ -44,7 +44,18 @@ orb window (`VERONICA.exe` -> `.venv\Scripts\pythonw.exe app.py`), Gmail and Cal
   check (a failing check becomes a pending fix proposal, keys excepted, a declined one quiet for 7 days), one step of
   approved work (approved proposals first, each at most 3 heartbeats), and a daily review that may propose up to 2
   ideas. Each run is a fresh conversation capped at 40 model steps (review 15). Tests: `test_goals.py`.
-  Planned next: stage 4 PC control.
+- **Stage 4, her hands on the PC (2026-10-14; owner: everything, any time, yes/no before each action while he is
+  there):** `pc.py` (ctypes only, no new packages): screenshots (BitBlt -> png), list/activate/minimize/close windows,
+  click, type, press keys, scroll, open files/urls/system pages, volume, media keys, lock, Windows toast.
+  `look_at_screen` sends the screenshot to the chat model as an image and returns its answer. Gate in `agent._pc_gate`:
+  with the owner present every changing action waits (`pending_pc`, his yes/no in words or the window's Allow/Deny);
+  in heartbeat runs it runs at once and is recorded as a heartbeat row of kind `pc`, unless the `hands` switch
+  (`data\heartbeat.json`, Goals and Hands panels) is off; "stop her hands"/"hands on" and the Hands panel switch
+  override everything. She must never click password boxes, payment pages or email Send. Tests: `test_pc.py`.
+- **Interface upgrade (2026-10-14):** markdown in the thread (headings, lists, bold/italic, links, fenced code with a
+  Copy button), timestamps, multi-line input (Enter sends, Shift+Enter newline), Ctrl+K command palette, Ctrl+L new
+  chat, a Hands screen (switches, the waiting action with Allow/Deny, the log of what her hands did) and a waiting
+  action bar on the chat. Planned next: the VERONICA/JARVIS merge (repo\docs\VERONICA-MERGE-PLAN.md).
 - **Installed app (owner 2026-10-14: "a real installed app: installer, Start Menu, uninstall, her own folder in
   AppData, updates like JARVIS"; "a separate VERONICA app until the merge"):** `paths.py` says where the program and
   her data are: in this coding folder both are here (as before); in an installed release the program is

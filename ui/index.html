@@ -164,8 +164,10 @@ pre.code .add { color: #86efac; } pre.code .del { color: #fda4af; } pre.code .hu
 .pill-btn.danger { border-color: rgba(251, 113, 133, .45); color: #fecdd3; }
 .pill-btn:hover { filter: brightness(1.1); }
 
-.ask { margin: 0 0 14px; display: flex; align-items: center; gap: 6px; height: 60px; padding: 0 8px 0 8px; border-radius: 999px; border: 1px solid rgba(169,155,255,.42); background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.02)); box-shadow: 0 0 28px rgba(143,125,255,.14), inset 0 1px 0 rgba(255,255,255,.05); }
-.ask input { flex: 1; min-width: 0; height: 100%; background: none; border: 0; outline: none; color: var(--text); font: inherit; font-size: 15px; padding: 0 6px; user-select: text; }
+.ask { margin: 0 0 14px; display: flex; align-items: flex-end; gap: 6px; min-height: 60px; padding: 8px; border-radius: 999px; border: 1px solid rgba(169,155,255,.42); background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.02)); box-shadow: 0 0 28px rgba(143,125,255,.14), inset 0 1px 0 rgba(255,255,255,.05); }
+.ask input, .ask textarea { flex: 1; min-width: 0; background: none; border: 0; outline: none; color: var(--text); font: inherit; font-size: 15px; padding: 8px 6px; user-select: text; }
+.ask textarea { resize: none; max-height: 132px; line-height: 1.45; scrollbar-width: thin; align-self: center; }
+.ask .round { align-self: flex-end; }
 .ask input::placeholder { color: var(--muted); }
 .round { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; }
 .round:hover { background: var(--card-hi); }
@@ -228,6 +230,31 @@ pre.code .add { color: #86efac; } pre.code .del { color: #fda4af; } pre.code .hu
 .goal.waiting { border-color: rgba(169,155,255,.45); }
 .set select { background: transparent; color: var(--muted); border: 0; font: inherit; font-size: 13px; }
 .set select option { background: #11121a; color: var(--text); }
+/* markdown in the thread */
+.md { font-size: 14.5px; line-height: 1.6; }
+.md p { margin: 0 0 8px; } .md p:last-child { margin-bottom: 0; }
+.md h2, .md h3, .md h4 { margin: 12px 0 6px; font-weight: 600; font-size: 15px; color: var(--text); }
+.md h3 { font-size: 14px; } .md h4 { font-size: 13px; color: var(--muted); }
+.md ul, .md ol { margin: 0 0 8px; padding-left: 20px; } .md li { margin: 2px 0; }
+.md a { color: #9db7ff; text-decoration: none; } .md a:hover { text-decoration: underline; }
+.md b { font-weight: 600; } .md i { color: var(--muted); }
+.md pre.code { position: relative; }
+.md pre.code .copy, pre.code .copy { position: absolute; top: 6px; right: 6px; height: 24px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--line-hi); background: var(--card-hi); color: var(--muted); font-size: 11.5px; }
+.md pre.code .copy:hover { color: var(--text); }
+.msg time, .goal time { color: var(--faint); font-size: 10.5px; margin-left: 8px; letter-spacing: .04em; }
+/* the pending hands action and the hands-off note */
+#pcbar .row { display: flex; gap: 12px; align-items: center; }
+.hands-off { display: none; align-items: center; gap: 8px; margin: 0 0 8px; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(251,113,133,.4); color: #fecdd3; font-size: 12.5px; width: fit-content; }
+.hands-off.show { display: flex; }
+/* command palette */
+#palette { position: fixed; inset: 0; display: none; place-items: start center; z-index: 60; background: rgba(4,5,9,.55); backdrop-filter: blur(3px); padding-top: 14vh; }
+#palette.show { display: grid; }
+#palette .box { width: min(560px, 92vw); border-radius: 16px; border: 1px solid var(--line-hi); background: #0d0e16; box-shadow: 0 24px 60px rgba(0,0,0,.5); overflow: hidden; }
+#palette input { width: 100%; height: 48px; padding: 0 16px; background: none; border: 0; outline: none; color: var(--text); font: inherit; font-size: 15px; border-bottom: 1px solid var(--line); }
+#palette .items { max-height: 320px; overflow-y: auto; padding: 6px; }
+#palette button.item { width: 100%; display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 10px; text-align: left; font-size: 14px; }
+#palette button.item:hover, #palette button.item.on { background: var(--card-hi); }
+#palette button.item small { margin-left: auto; color: var(--faint); font-size: 11.5px; }
 .mem textarea { width: 100%; min-height: 44px; border-radius: 10px; border: 1px solid var(--line-hi); background: #08090f; color: var(--text); font: inherit; font-size: 13.5px; padding: 8px 10px; resize: vertical; user-select: text; }
 
 #profile .who { display: grid; justify-items: center; gap: 8px; padding: 0 0 20px; }
@@ -298,6 +325,7 @@ pre.code .add { color: #86efac; } pre.code .del { color: #fda4af; } pre.code .hu
     <button data-go="memory"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.6-3 8.3-7 10-4-1.7-7-5.4-7-10V6z"/></svg>Memory</button>
     <button data-go="projects"><svg viewBox="0 0 24 24"><path d="M12 3 3 8l9 5 9-5zM3 13l9 5 9-5"/></svg>Projects</button>
     <button data-go="goals"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>Goals<span class="count" id="goals-count"></span></button>
+    <button data-go="pc"><svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M9 20h6M12 16.5V20"/></svg>Hands</button>
     <button data-act="research"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>Research</button>
     <div style="height:14px"></div>
     <button data-go="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14.2 3h-4.4l-.4 2.6a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 2 1.2l.4 2.6h4.4l.4-2.6a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg>Settings</button>
@@ -339,9 +367,11 @@ pre.code .add { color: #86efac; } pre.code .del { color: #fda4af; } pre.code .hu
     <button class="project-pill" id="project-pill" aria-label="Choose a project"><span class="dot"></span><span id="project-label">No project open</span></button>
     <div class="changes" id="changes"><div class="row"><div><strong id="changes-title"></strong><small id="changes-sub"></small></div><div class="acts"><button class="pill-btn" id="changes-view">View</button><button class="pill-btn" id="changes-undo">Undo</button><button class="pill-btn primary" id="changes-keep">Keep</button></div></div></div>
     <div class="changes" id="draft"><div class="row"><div><strong id="draft-title"></strong><small id="draft-sub"></small></div><div class="acts"><button class="pill-btn" id="draft-view">View</button><button class="pill-btn" id="draft-discard">Discard</button><button class="pill-btn primary" id="draft-send">Send</button></div></div></div>
+    <div class="changes" id="pcbar"><div class="row"><div><strong>Veronica wants to use your PC</strong><small id="pcbar-words"></small></div><div class="acts"><button class="pill-btn danger" id="pcbar-deny">Deny</button><button class="pill-btn primary" id="pcbar-allow">Allow</button></div></div></div>
+    <div class="hands-off" id="hands-off"><svg viewBox="0 0 24 24"><path d="M18 11V6.5a1.5 1.5 0 0 0-3 0V11m0-4.5v-1a1.5 1.5 0 0 0-3 0V11m0-3.5v-2a1.5 1.5 0 0 0-3 0V12m0-2.5a1.5 1.5 0 0 0-3 0V15a6 6 0 0 0 6 6h1a6 6 0 0 0 6-6v-4a1.5 1.5 0 0 0-3 0"/></svg>Her hands are off — she will not click or type until you switch them on</div>
     <form class="ask" id="ask" autocomplete="off">
       <button type="button" class="round" id="ask-plus" aria-label="Open a project"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
-      <input id="ask-input" placeholder="Message Veronica..." aria-label="Message Veronica">
+      <textarea id="ask-input" rows="1" placeholder="Message Veronica..." aria-label="Message Veronica"></textarea>
       <button type="button" class="round wave" id="ask-voice" aria-label="Voice mode"><svg viewBox="0 0 24 24"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"/></svg></button>
       <button type="submit" class="round send" id="ask-send" aria-label="Send"><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button>
     </form>
@@ -406,6 +436,20 @@ pre.code .add { color: #86efac; } pre.code .del { color: #fda4af; } pre.code .hu
   </div>
 </section>
 
+<!-- her hands on this PC -->
+<section class="screen" id="pc" aria-label="Her hands">
+  <div class="page scroll">
+    <div class="page-head"><button class="icon-btn back" data-go="home" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h2>Her hands</h2><p>What Veronica may do on this PC: see the screen, click, type, open and close windows, volume and media. While you are here she asks before each action.</p></div>
+    <div class="settings">
+      <button class="set" id="hands-row" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M18 11V6.5a1.5 1.5 0 0 0-3 0V11m0-4.5v-1a1.5 1.5 0 0 0-3 0V11m0-3.5v-2a1.5 1.5 0 0 0-3 0V12m0-2.5a1.5 1.5 0 0 0-3 0V15a6 6 0 0 0 6 6h1a6 6 0 0 0 6-6v-4a1.5 1.5 0 0 0-3 0"/></svg>Her hands<span class="switch on" id="hands-switch"></span></button>
+      <button class="set" id="hands-beat-row" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg>Use them while you are away<span class="switch on" id="hands-beat-switch"></span></button>
+      <button class="set" id="pc-look"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/></svg>Ask her to look at the screen<em><svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M9 6l6 6-6 6"/></svg></em></button>
+    </div>
+    <div class="section-title">Waiting for your yes</div><div id="pc-waiting"></div>
+    <div class="section-title">What her hands did</div><div id="pc-log"></div>
+  </div>
+</section>
+
 <!-- goals and proposals: she proposes, you approve -->
 <section class="screen" id="goals" aria-label="Goals">
   <div class="page scroll">
@@ -418,6 +462,7 @@ pre.code .add { color: #86efac; } pre.code .del { color: #fda4af; } pre.code .hu
     <div class="settings" id="beat-box">
       <button class="set" id="beat-row" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg>Work on her own<span class="switch on" id="beat-switch"></span></button>
       <div class="set"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg>Every<em><select id="beat-minutes" aria-label="How often"><option value="15">15 minutes</option><option value="30">30 minutes</option><option value="60">hour</option><option value="180">3 hours</option><option value="360">6 hours</option><option value="1440">day</option></select></em></div>
+      <button class="set" id="hands-beat-row2" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M18 11V6.5a1.5 1.5 0 0 0-3 0V11m0-4.5v-1a1.5 1.5 0 0 0-3 0V11m0-3.5v-2a1.5 1.5 0 0 0-3 0V12m0-2.5a1.5 1.5 0 0 0-3 0V15a6 6 0 0 0 6 6h1a6 6 0 0 0 6-6v-4a1.5 1.5 0 0 0-3 0"/></svg>Hands while you are away<span class="switch on" id="hands-beat-switch2"></span></button>
       <button class="set" id="review-row" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg>Daily ideas for you<span class="switch on" id="review-switch"></span></button>
       <button class="set" id="beat-go"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span id="beat-line">Run a heartbeat now</span><em id="beat-when"></em></button>
     </div>
@@ -467,6 +512,7 @@ pre.code .add { color: #86efac; } pre.code .del { color: #fda4af; } pre.code .hu
   <button class="menu-row" data-menu="research"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>Research<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
   <button class="menu-row" data-menu="tools"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/></svg>Tools<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
   <button class="menu-row" data-menu="memory"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/></svg>Memory<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+  <button class="menu-row" data-menu="pc"><svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M9 20h6M12 16.5V20"/></svg>Her hands on this PC<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
   <button class="menu-row" data-menu="goals"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/></svg>Goals &amp; proposals<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
   <button class="menu-row" data-menu="projects"><svg viewBox="0 0 24 24"><path d="M12 3 3 8l9 5 9-5zM3 13l9 5 9-5"/></svg>Projects<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
   <button class="menu-row" data-menu="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14.2 3h-4.4l-.4 2.6a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 2 1.2l.4 2.6h4.4l.4-2.6a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg>Settings<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
@@ -474,6 +520,7 @@ pre.code .add { color: #86efac; } pre.code .del { color: #fda4af; } pre.code .hu
   <button class="quit" id="quit"><svg viewBox="0 0 24 24"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 16l-4-4 4-4M6 12h10"/></svg>Quit Veronica</button>
 </aside>
 
+<div id="palette" role="dialog" aria-label="Commands"><div class="box"><input id="palette-input" placeholder="Type a command…" aria-label="Command"><div class="items" id="palette-items"></div></div></div>
 <div id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title"><div class="grab"></div><h4><span id="sheet-title"></span><button class="icon-btn" id="sheet-close" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h4><div class="body" id="sheet-body"></div></div>
 <div id="toast" role="status"></div>
 
@@ -666,6 +713,7 @@ function go(name) {
   if (name === 'memory') loadMemories();
   if (name === 'projects') renderProjects();
   if (name === 'goals') loadGoals();
+  if (name === 'pc') { S.goals = null; renderPc(); }
 }
 document.addEventListener('click', e => {
   const target = e.target.closest('[data-go]');
@@ -679,6 +727,7 @@ function doAct(a) {
   else if (a === 'conversation') go('home');
   else if (a === 'changes') changesSheet();
   else if (a === 'new') { newChat(); go('home'); }
+  else if (a === 'pc') go('pc');
 }
 function openMenu() { $('#menu').classList.add('show'); $('#scrim').classList.add('show'); }
 function closeMenu() { $('#menu').classList.remove('show'); if (!$('#sheet').classList.contains('show')) $('#scrim').classList.remove('show'); }
@@ -687,6 +736,7 @@ $('#scrim').addEventListener('click', () => { closeMenu(); closeSheet(); });
 $$('[data-menu]').forEach(b => b.addEventListener('click', () => {
   const m = b.dataset.menu;
   if (m === 'new') { newChat(); go('home'); }
+  else if (m === 'pc') go('pc');
   else if (m === 'voice') enterVoice();
   else if (m === 'research') { closeMenu(); researchSheet(); }
   else go(m);
@@ -755,7 +805,38 @@ function stopAudio(quiet) {
 }
 
 /* ------------------------------------------------------------- the thread */
+const inline = s => s.replace(/`([^`]+)`/g, '<code>$1</code>')
+  .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<i>$2</i>')
+  .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+function md(src) {
+  const lines = esc(src).split('\n');
+  let out = [], code = [], inCode = false, list = null;
+  const endList = () => { if (list) { out.push('</' + list + '>'); list = null; } };
+  for (const line of lines) {
+    if (line.startsWith('```')) {
+      if (inCode) { out.push('<pre class="code"><button class="copy" data-copy>Copy</button><code>' + code.join('\n') + '</code></pre>'); code = []; inCode = false; }
+      else { endList(); inCode = true; }
+      continue;
+    }
+    if (inCode) { code.push(line); continue; }
+    const h = line.match(/^(#{1,3})\s+(.*)/), ul = line.match(/^\s*[-*]\s+(.*)/), ol = line.match(/^\s*\d+[.)]\s+(.*)/);
+    if (ul || ol) {
+      const want = ul ? 'ul' : 'ol';
+      if (list !== want) { endList(); out.push('<' + want + '>'); list = want; }
+      out.push('<li>' + inline(ul ? ul[1] : ol[1]) + '</li>');
+      continue;
+    }
+    endList();
+    if (h) { out.push('<h' + (Number(h[1].length) + 1) + '>' + inline(h[2]) + '</h' + (Number(h[1].length) + 1) + '>'); continue; }
+    if (!line.trim()) continue;
+    out.push('<p>' + inline(line) + '</p>');
+  }
+  if (inCode) out.push('<pre class="code"><code>' + code.join('\n') + '</code></pre>');
+  endList();
+  return out.join('');
+}
 const format = text => esc(text).replace(/`([^`\n]+)`/g, '<code>$1</code>');
+const stamp = () => '<time>' + new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) + '</time>';
 function diffHtml(text) {
   return esc(text).split('\n').map(l => {
     if (l.startsWith('+') && !l.startsWith('+++')) return `<span class="add">${l}</span>`;
@@ -771,8 +852,8 @@ function addMessage(who, text, show) {
   const el = document.createElement('div');
   el.className = 'msg ' + who;
   if (who === 'veronica') {
-    el.innerHTML = `<span class="mini"></span><div>${format(text)}${show ? `<details class="more"><summary>Details</summary><pre class="code">${diffHtml(show)}</pre></details>` : ''}</div>`;
-  } else el.innerHTML = format(text);
+    el.innerHTML = `<span class="mini"></span><div><div class="md">${md(text)}</div>${stamp()}${show ? `<details class="more"><summary>Details</summary><pre class="code"><button class="copy" data-copy>Copy</button><code>${diffHtml(show)}</code></pre></details>` : ''}</div>`;
+  } else el.innerHTML = `<div>${format(text)}</div>${stamp()}`;
   thread.appendChild(el);
   S.messages++;
   setBusy(who === 'you');
@@ -803,12 +884,18 @@ function send(text) {
   addMessage('you', text);
   call('send', text, S.status.draft ? S.status.draft.id : null);
 }
-$('#ask').addEventListener('submit', e => { e.preventDefault(); const i = $('#ask-input'); send(i.value); i.value = ''; });
+const askBox = $('#ask-input');
+const grow = () => { askBox.style.height = 'auto'; askBox.style.height = Math.min(132, askBox.scrollHeight) + 'px'; };
+askBox.addEventListener('input', grow);
+askBox.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(askBox.value); askBox.value = ''; grow(); }
+});
+$('#ask').addEventListener('submit', e => { e.preventDefault(); send(askBox.value); askBox.value = ''; grow(); });
 $('#ask-plus').addEventListener('click', projectsSheet);
 $('#project-pill').addEventListener('click', projectsSheet);
 $$('[data-chip]').forEach(b => b.addEventListener('click', () => {
   const c = b.dataset.chip;
-  if (c.endsWith(': ')) { const i = $('#ask-input'); i.value = c; i.focus(); return; }
+  if (c.endsWith(': ')) { const i = $('#ask-input'); i.value = c; i.focus(); grow(); return; }
   send(c);
 }));
 
@@ -823,6 +910,11 @@ function renderStatus(st) {
     $('#changes-title').textContent = `${files.length} file${files.length > 1 ? 's' : ''} changed`;
     $('#changes-sub').textContent = s.tests === true ? 'Tests pass · waiting for you' : s.tests === false ? 'Tests fail' : 'No tests to check · waiting for you';
   }
+  const pc = s.pending_pc;
+  $('#pcbar').classList.toggle('show', !!pc);
+  if (pc) $('#pcbar-words').textContent = pc.words;
+  $('#hands-off').classList.toggle('show', s.hands_on === false);
+  if (S.screen === 'pc') renderPc();
   const d = s.draft;
   $('#draft').classList.toggle('show', !!d);
   if (d) { $('#draft-title').textContent = `Email to ${d.to.join(', ')}`; $('#draft-sub').textContent = `${d.subject} · not sent yet`; }
@@ -830,9 +922,19 @@ function renderStatus(st) {
   $('#mem-chat').textContent = S.messages ? `${S.messages} message${S.messages > 1 ? 's' : ''} so far. Forgotten when Veronica closes, unless you ask her to remember something.` : 'Nothing said yet.';
   renderSuggestions();
 }
+document.addEventListener('click', e => {
+  const copy = e.target.closest('[data-copy]');
+  if (!copy) return;
+  const code = copy.parentElement.querySelector('code');
+  navigator.clipboard && navigator.clipboard.writeText(code ? code.innerText : '');
+  copy.textContent = 'Copied';
+  setTimeout(() => { copy.textContent = 'Copy'; }, 1400);
+});
 $('#changes-view').addEventListener('click', changesSheet);
 $('#changes-keep').addEventListener('click', () => { if (S.busy) return; addMessage('you', 'Keep it.'); call('keep'); });
 $('#changes-undo').addEventListener('click', () => { if (S.busy) return; addMessage('you', 'Undo it.'); call('undo'); });
+$('#pcbar-allow').addEventListener('click', () => { if (!S.busy) call('allow_pc'); });
+$('#pcbar-deny').addEventListener('click', () => { if (!S.busy) call('deny_pc'); });
 $('#draft-view').addEventListener('click', draftSheet);
 $('#draft-send').addEventListener('click', () => { const d = S.status.draft; if (!d || S.busy) return; addMessage('you', 'Send it.'); call('send_email', d.id); });
 $('#draft-discard').addEventListener('click', () => { const d = S.status.draft; if (!d || S.busy) return; addMessage('you', 'Discard the email.'); call('discard_email', d.id); });
@@ -859,7 +961,7 @@ function renderSuggestions() {
     const k = b.dataset.sugg;
     if (k === 'changes') changesSheet();
     else if (k === 'draft') draftSheet();
-    else if (k === 'continue') { go('home'); const inp = $('#ask-input'); inp.value = `Let's continue with ${S.status.project}: `; inp.focus(); }
+    else if (k === 'continue') { go('home'); const inp = $('#ask-input'); inp.value = `Let's continue with ${S.status.project}: `; inp.focus(); grow(); }
     else if (k === 'schedule') send("What's on my calendar for the rest of today?");
     else if (k === 'email') send('Any important unread emails?');
     else if (k === 'research') researchSheet();
@@ -969,6 +1071,30 @@ function renderMemories() {
 }
 $$('#mem-tabs button').forEach(b => b.addEventListener('click', () => { S.memTab = b.dataset.tab; $$('#mem-tabs button').forEach(x => x.classList.toggle('on', x === b)); renderMemories(); }));
 
+/* ------------------------------------------------------- her hands on the PC */
+async function renderPc() {
+  const g = S.goals || (S.goals = await call('goals')) || {};
+  const h = g.heartbeat || {};
+  $('#hands-switch').classList.toggle('on', S.status.hands_on !== false);
+  $('#hands-row').setAttribute('aria-pressed', String(S.status.hands_on !== false));
+  $('#hands-beat-switch').classList.toggle('on', h.hands !== false);
+  $('#hands-beat-row').setAttribute('aria-pressed', String(h.hands !== false));
+  const waiting = S.status.pending_pc;
+  $('#pc-waiting').innerHTML = waiting
+    ? `<div class="goal waiting"><b>Waiting for your yes</b><span class="acts"><button class="pill-btn danger" id="pc-deny">Deny</button><button class="pill-btn primary" id="pc-allow">Allow</button></span><p>${esc(waiting.words)}</p></div>`
+    : '<div class="empty-note">Nothing is waiting. When Veronica wants to click, type or open something, she asks here first.</div>';
+  const log = (h.recent || []).filter(r => r.kind === 'pc');
+  $('#pc-log').innerHTML = log.length ? log.map(r =>
+    `<div class="goal"><small>${when(r.at)} · ${esc(r.item || '')}</small><p>${esc(r.summary.slice(0, 300))}</p></div>`).join('')
+    : '<div class="empty-note">Her hands have done nothing yet.</div>';
+  const allow = $('#pc-allow'), deny = $('#pc-deny');
+  if (allow) allow.addEventListener('click', async () => { await call('allow_pc'); S.goals = null; renderPc(); });
+  if (deny) deny.addEventListener('click', async () => { await call('deny_pc'); S.goals = null; renderPc(); });
+}
+$('#hands-row').addEventListener('click', async () => { await call('hands', S.status.hands_on === false); renderPc(); });
+$('#hands-beat-row').addEventListener('click', async () => { await call('heartbeat_settings', null, null, null, !(S.goals && S.goals.heartbeat && S.goals.heartbeat.hands)); S.goals = null; renderPc(); });
+$('#pc-look').addEventListener('click', () => { go('home'); send('Look at the screen and tell me what you see.'); });
+
 /* ------------------------------------------------------------------- goals */
 const ACTIONS = {
   goal: {proposed: [['approve', 'Approve', 'primary'], ['decline', 'Decline', 'danger']],
@@ -1003,6 +1129,7 @@ async function loadGoals() {
   const h = g.heartbeat || {};
   $('#beat-switch').classList.toggle('on', !!h.on); $('#beat-row').setAttribute('aria-pressed', String(!!h.on));
   $('#review-switch').classList.toggle('on', !!h.review); $('#review-row').setAttribute('aria-pressed', String(!!h.review));
+  $('#hands-beat-switch2').classList.toggle('on', h.hands !== false); $('#hands-beat-row2').setAttribute('aria-pressed', String(h.hands !== false));
   if (h.minutes) $('#beat-minutes').value = String(h.minutes);
   $('#beat-line').textContent = h.running ? 'Working now…' : 'Run a heartbeat now';
   $('#beat-when').textContent = h.last ? `last ${when(h.last.at)}` : 'not yet';
@@ -1029,6 +1156,7 @@ $('#goal-input').addEventListener('keydown', e => { if (e.key === 'Enter') addGo
 $('#beat-row').addEventListener('click', async () => { await call('heartbeat_settings', !(S.goals && S.goals.heartbeat && S.goals.heartbeat.on), null, null); loadGoals(); });
 $('#review-row').addEventListener('click', async () => { await call('heartbeat_settings', null, null, !(S.goals && S.goals.heartbeat && S.goals.heartbeat.review)); loadGoals(); });
 $('#beat-minutes').addEventListener('change', async e => { await call('heartbeat_settings', null, Number(e.target.value), null); loadGoals(); });
+$('#hands-beat-row2').addEventListener('click', async () => { await call('heartbeat_settings', null, null, null, !(S.goals && S.goals.heartbeat && S.goals.heartbeat.hands)); loadGoals(); });
 $('#beat-go').addEventListener('click', () => { call('beat_now'); notice('A heartbeat starts within a minute.'); setTimeout(loadGoals, 1500); });
 
 /* ------------------------------------------------------------------- tools */
@@ -1064,6 +1192,43 @@ function renderConnections(c) {
   $('#side-status').textContent = parts.length ? parts.join(' · ') : 'Claude Sonnet 5.5';
 }
 
+/* ------------------------------------------------------- command palette */
+const COMMANDS = [
+  ['New chat', 'Ctrl+L', () => { newChat(); go('home'); }],
+  ['Goals and proposals', '', () => go('goals')],
+  ['Her hands on this PC', '', () => go('pc')],
+  ['Research a topic', '', () => researchSheet()],
+  ['Voice mode', '', () => enterVoice()],
+  ['Look at the screen', '', () => { go('home'); send('Look at the screen and tell me what you see.'); }],
+  ['Her hands off', '', () => { call('hands', false); notice('Her hands are off.'); }],
+  ['Her hands on', '', () => { call('hands', true); notice('Her hands are on.'); }],
+  ['Memory', '', () => go('memory')],
+  ['Settings', '', () => go('profile')],
+];
+let paletteAt = -1;
+function palette(filter) {
+  const q = (filter || '').toLowerCase();
+  const rows = COMMANDS.map((c, i) => [c, i]).filter(([c]) => !q || c[0].toLowerCase().includes(q));
+  paletteAt = rows.length ? rows[0][1] : -1;
+  $('#palette-items').innerHTML = rows.map(([c, i]) =>
+    `<button class="item${i === paletteAt ? ' on' : ''}" data-cmd="${i}">${esc(c[0])}<small>${esc(c[1])}</small></button>`).join('')
+    || '<div class="empty-note" style="padding:10px">No command matches.</div>';
+  $$('#palette-items [data-cmd]').forEach(b => b.addEventListener('click', () => { closePalette(); COMMANDS[Number(b.dataset.cmd)][2](); }));
+}
+function openPalette() { $('#palette').classList.add('show'); $('#palette-input').value = ''; palette(''); $('#palette-input').focus(); }
+function closePalette() { $('#palette').classList.remove('show'); }
+$('#palette').addEventListener('click', e => { if (e.target.id === 'palette') closePalette(); });
+$('#palette-input').addEventListener('input', e => palette(e.target.value));
+$('#palette-input').addEventListener('keydown', e => {
+  const items = $$('#palette-items [data-cmd]');
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    paletteAt = (paletteAt + (e.key === 'ArrowDown' ? 1 : items.length - 1)) % Math.max(1, items.length);
+    items.forEach((b, i) => b.classList.toggle('on', i === paletteAt));
+  } else if (e.key === 'Enter' && items[paletteAt]) { closePalette(); COMMANDS[Number(items[paletteAt].dataset.cmd)][2](); }
+  else if (e.key === 'Escape') closePalette();
+});
+
 /* ----------------------------------------------------------------- notices */
 let toastTimer = 0;
 function notice(text) {
@@ -1089,6 +1254,7 @@ window.veronica = {
     if (info && info.pending) S.status = Object.assign({}, S.status, info.pending);
     if (info && typeof info.waiting === 'number') renderGoalCount(info.waiting);
     if (S.screen === 'goals') loadGoals();
+    if (S.screen === 'pc') { S.goals = null; renderPc(); }
     renderSuggestions();
     if (S.sheetTask && $('#sheet').classList.contains('show')) taskSheet(S.sheetTask);
   },
@@ -1096,7 +1262,10 @@ window.veronica = {
 
 /* ----------------------------------------------------------------- start */
 document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); $('#palette').classList.contains('show') ? closePalette() : openPalette(); return; }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'l') { e.preventDefault(); newChat(); go('home'); return; }
   if (e.key !== 'Escape') return;
+  if ($('#palette').classList.contains('show')) return closePalette();
   if ($('#sheet').classList.contains('show')) return closeSheet();
   if ($('#menu').classList.contains('show')) return closeMenu();
   if (S.screen === 'voice') return leaveVoice();

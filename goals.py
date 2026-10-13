@@ -210,14 +210,17 @@ class Heartbeat:
         minutes = data.get('minutes') if isinstance(data, dict) else None
         return {'on': bool(data.get('on', True)) if isinstance(data, dict) else True,
                 'review': bool(data.get('review', True)) if isinstance(data, dict) else True,
+                'hands': bool(data.get('hands', True)) if isinstance(data, dict) else True,
                 'minutes': max(MIN_MINUTES, int(minutes)) if isinstance(minutes, (int, float)) else DEFAULT_MINUTES}
 
-    def set_config(self, on=None, minutes=None, review=None):
+    def set_config(self, on=None, minutes=None, review=None, hands=None):
         current = self.config()
         if on is not None:
             current['on'] = bool(on)
         if review is not None:
             current['review'] = bool(review)
+        if hands is not None:
+            current['hands'] = bool(hands)
         if minutes is not None:
             current['minutes'] = max(MIN_MINUTES, int(minutes))
         self.config_file.parent.mkdir(parents=True, exist_ok=True)
@@ -318,6 +321,7 @@ class Heartbeat:
         agent.max_rounds = rounds
         agent.proposals_left = proposals_left
         agent.checkpoint_name = 'heartbeat'
+        agent.pc_autonomous = self.config()['hands']
         return agent
 
     def _work(self, kind, item):

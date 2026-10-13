@@ -156,6 +156,14 @@ copies your keys, settings, memories, goals and reports from this folder (they s
 next version's Setup: your data is kept, and the version before is kept as a way back. Uninstall removes the program
 and keeps your data. To build a Setup: commit, then `.venv\Scripts\python.exe tools\build_release.py --version 1.0.0`.
 
+### Her hands on this PC
+
+Veronica can see your screen, click, type, open and close windows, change the volume, play and pause media, and lock
+the PC. While you are using her, **she asks before each action**: a bar appears over the typing box (and on the Hands
+screen) with Allow and Deny, or say "yes" / "no". While you are away she may use them for work you approved, and every
+action is listed on the Hands screen. "Stop her hands" (or the switch on the Hands screen) stops all of it until you
+say "hands on". She never touches password boxes, payment pages or an email's Send button.
+
 ### Goals, proposals and her heartbeat
 
 Open **Goals** in the window. Veronica suggests fixes, improvements, tasks and goals there; **nothing she suggests

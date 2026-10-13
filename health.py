@@ -39,7 +39,7 @@ PYTHON = paths.PYTHON
 REPAIRS = HERE / 'data' / 'self-repair'
 OWN_PATTERNS = ('*.py', 'pytest.ini', 'requirements.txt', '*.md', '.env.example', 'ui/*', 'launcher/*')
 MODULES = ('agent', 'app', 'changes', 'calendar_feed', 'citations', 'context_state', 'gmail', 'goals', 'hands', 'health',
-           'models', 'research', 'store', 'subagents', 'tasks', 'voice', 'web')
+           'models', 'pc', 'research', 'store', 'subagents', 'tasks', 'voice', 'web')
 REQUIRED_KEYS = ('OPENROUTER_API_KEY',)
 OPTIONAL_KEYS = ('BRAVE_API_KEY', 'FISH_API_KEY', 'GMAIL_ADDRESS', 'GMAIL_APP_PASSWORD', 'GOOGLE_CALENDAR_ICS',
                  'ASI_ONE_API_KEY')
