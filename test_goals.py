@@ -260,7 +260,7 @@ def test_the_daily_review_may_propose_only_two_and_runs_once_a_day(db, tmp_path)
 def test_the_heartbeat_is_due_by_its_settings(db, tmp_path):
     clock = Clock()
     beat, _ = beat_with(db, tmp_path, clock=clock)
-    assert beat.config() == {'on': True, 'review': True, 'minutes': 60} and beat.due()
+    assert beat.config() == {'on': True, 'review': True, 'hands': True, 'minutes': 60} and beat.due()
     beat.set_config(review=False)
     beat.beat()
     assert not beat.due()
