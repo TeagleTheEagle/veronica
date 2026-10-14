@@ -285,9 +285,9 @@ def test_the_model_is_read_when_she_asks_so_the_env_file_counts(project, monkeyp
     # One model per job from models.py (owner's guide, 2026-10-13); a .env line may only pick another listed model.
     monkeypatch.delenv('OPENROUTER_MODEL', raising=False)
     monkeypatch.setenv('VERONICA_MODEL', 'openai/gpt-oss-120b')
-    assert agent.chat_model() == agent.DEFAULT_MODEL == 'anthropic/claude-sonnet-5.5'
+    assert agent.chat_model() == agent.DEFAULT_MODEL == 'deepseek/deepseek-v4-pro'   # owner, 2026-10-14
     monkeypatch.setenv('OPENROUTER_MODEL', 'qwen/qwen3.8-max-0902')       # not on the list: ignored
-    assert agent.chat_model() == 'anthropic/claude-sonnet-5.5'
+    assert agent.chat_model() == 'deepseek/deepseek-v4-pro'
     monkeypatch.setenv('OPENROUTER_MODEL', 'anthropic/claude-haiku-5.5')
     veronica = make(project, message(text('Hello.')))
     assert veronica.respond('hello').say == 'Hello.'

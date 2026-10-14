@@ -222,7 +222,7 @@ def test_research_runs_on_the_research_model_through_openrouter_with_its_own_key
         research.default_model()
     monkeypatch.setenv('OPENROUTER_API_KEY', 'or-test-key')
     model = research.default_model()
-    assert research.MODEL == 'anthropic/claude-sonnet-5.5' and model.model_name == research.MODEL
+    assert research.MODEL == 'deepseek/deepseek-v4-pro' and model.model_name == research.MODEL
     assert model.openai_api_base == 'https://openrouter.ai/api/v1'
     assert model.openai_api_key.get_secret_value() == 'or-test-key'
     assert model.extra_body == {'reasoning': {'effort': research.EFFORT, 'exclude': True}}

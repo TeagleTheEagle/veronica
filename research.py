@@ -43,7 +43,7 @@ logging.getLogger('deepagents.middleware._video').setLevel(logging.ERROR)  # a h
 warnings.filterwarnings('ignore', message='Pydantic serializer warnings', category=UserWarning)
 
 OPENROUTER_BASE = models.OPENROUTER_BASE
-MODEL = models.research_model()    # Claude Sonnet 5.5 unless OPENROUTER_RESEARCH_MODEL names another listed model
+MODEL = models.research_model()    # DeepSeek V4 Pro unless OPENROUTER_RESEARCH_MODEL names another listed model
 EFFORT = os.environ.get('VERONICA_RESEARCH_EFFORT', os.environ.get('VERONICA_EFFORT', 'high'))
 MAX_MODEL_CALLS = int(os.environ.get('VERONICA_TASK_MAX_STEPS', '40'))
 MAX_MINUTES = float(os.environ.get('VERONICA_TASK_MAX_MINUTES', '20'))
@@ -55,6 +55,8 @@ MAX_SOURCES = 12
 # 4 / 20, Haiku 5.5 0.10 / 0.50, Gemini 3.1 Flash-Lite 0.25 / 1.50). A model name not listed here is counted at Opus
 # 5.5's rates, so the cost limit never counts a call as cheaper than it might be.
 PRICES = {
+    'deepseek/deepseek-v4-pro': {'input': 0.96e-6, 'cache_write_5m': 0.96e-6, 'cache_write_1h': 0.96e-6,
+                                 'cache_read': 0.96e-6, 'output': 1.91e-6},     # OpenRouter's list of 2026-10-14
     'anthropic/claude-sonnet-5.5': {'input': 2e-6, 'cache_write_5m': 2.5e-6, 'cache_write_1h': 4e-6,
                                     'cache_read': 0.2e-6, 'output': 10e-6},
     'anthropic/claude-opus-5.5': {'input': 4e-6, 'cache_write_5m': 5e-6, 'cache_write_1h': 8e-6, 'cache_read': 0.4e-6,

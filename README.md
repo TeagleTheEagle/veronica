@@ -137,9 +137,9 @@ Settings (in `.env` or the environment):
 
 | Setting | Default | What it does |
 |---|---|---|
-| `OPENROUTER_MODEL` | `anthropic/claude-sonnet-5.5` | The model she chats and works with (OpenRouter) |
-| `OPENROUTER_CODING_MODEL` | `anthropic/claude-opus-5.5` | The model her coder helper uses for coding jobs |
-| `OPENROUTER_RESEARCH_MODEL` | `anthropic/claude-sonnet-5.5` | The model for background research |
+| `OPENROUTER_MODEL` | `deepseek/deepseek-v4-pro` | The model she chats and works with (OpenRouter) |
+| `OPENROUTER_CODING_MODEL` | `deepseek/deepseek-v4-pro` | The model her coder helper uses for coding jobs |
+| `OPENROUTER_RESEARCH_MODEL` | `deepseek/deepseek-v4-pro` | The model for background research |
 | `OPENROUTER_HELPER_MODEL` | `xiaomi/mimo-v2.6-flash` | The model for her researcher and secretary helpers |
 | `FISH_MODEL` | `s2.1-pro` | The Fish Audio voice model |
 

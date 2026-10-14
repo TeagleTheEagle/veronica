@@ -19,17 +19,22 @@ PROVIDERS = {'openrouter': (OPENROUTER_BASE, 'OPENROUTER_API_KEY'), 'asi': (ASI_
 SERVED_BY = {'asi1-mini': 'asi'}      # everything not listed here goes through OpenRouter
 
 MODELS = {
-    'chat': 'anthropic/claude-sonnet-5.5',        # VERONICA herself: talking, tools, email, calendar
-    'coding': 'anthropic/claude-opus-5.5',        # the coder subagent
-    'research': 'anthropic/claude-sonnet-5.5',    # background research tasks (research.py)
+    'chat': 'deepseek/deepseek-v4-pro',           # VERONICA herself: talking, tools, email, calendar (owner, 2026-10-14:
+                                                  # "use DeepSeek V4 Pro" in Sonnet 5.5's place; $0.96/$1.91, 1M context,
+                                                  # tools; a fifth of Sonnet's output price)
+    'coding': 'deepseek/deepseek-v4-pro',         # the coder subagent (owner, 2026-10-14: "VERONICA uses DeepSeek V4 Pro
+                                                  # for coding", in Opus 5.5's place; a tenth of Opus's price)
+    'research': 'deepseek/deepseek-v4-pro',       # background research tasks (research.py)
     'helper': 'xiaomi/mimo-v2.6-flash',           # the researcher and secretary subagents (owner, 2026-10-14:
                                                   # MiMo-V2.6-Flash instead of Haiku 5.5; $0.14/$0.28, tools ok)
-    'backup': 'google/gemini-3.1-flash-lite',     # when Anthropic fails twice in a row
+    'backup': 'google/gemini-3.1-flash-lite',     # when the first model fails twice in a row (another maker)
 }
 
-ALLOWED = frozenset(MODELS.values()) | {'google/gemini-3.1-pro-preview', 'anthropic/claude-haiku-5.5', 'asi1-mini'}
+ALLOWED = frozenset(MODELS.values()) | {'google/gemini-3.1-pro-preview', 'anthropic/claude-haiku-5.5',
+                                        'anthropic/claude-sonnet-5.5', 'anthropic/claude-opus-5.5', 'asi1-mini'}
 
 LABELS = {
+    'deepseek/deepseek-v4-pro': 'DeepSeek V4 Pro',
     'anthropic/claude-sonnet-5.5': 'Claude Sonnet 5.5',
     'anthropic/claude-opus-5.5': 'Claude Opus 5.5',
     'anthropic/claude-haiku-5.5': 'Claude Haiku 5.5',

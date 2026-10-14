@@ -10,9 +10,12 @@ from test_veronica import FakeClaude, message, text
 def test_the_jobs_have_the_models_from_the_owners_guide(monkeypatch):
     for name in models.ENV.values():
         monkeypatch.delenv(name, raising=False)
-    assert models.chat_model() == 'anthropic/claude-sonnet-5.5'
-    assert models.coding_model() == 'anthropic/claude-opus-5.5'
-    assert models.research_model() == 'anthropic/claude-sonnet-5.5'
+    assert models.chat_model() == 'deepseek/deepseek-v4-pro'           # owner, 2026-10-14: in Sonnet 5.5's place
+    assert models.coding_model() == 'deepseek/deepseek-v4-pro'           # and for coding (owner, same day)
+    assert 'anthropic/claude-opus-5.5' in models.ALLOWED
+    assert models.research_model() == 'deepseek/deepseek-v4-pro'
+    assert models.label('deepseek/deepseek-v4-pro') == 'DeepSeek V4 Pro'
+    assert 'anthropic/claude-sonnet-5.5' in models.ALLOWED                # a .env line may still pick Sonnet
     assert models.helper_model() == 'xiaomi/mimo-v2.6-flash'        # owner, 2026-10-14: instead of Haiku 5.5
     assert models.backup_model() == 'google/gemini-3.1-flash-lite'
     assert not models.backup_model().startswith('anthropic/')      # a different maker is the point of a backup
@@ -24,7 +27,7 @@ def test_env_lines_may_only_pick_a_listed_model(monkeypatch):
     assert models.coding_model() == 'anthropic/claude-sonnet-5.5'
     for stray in ('qwen/qwen3.8-max-0902', 'openai/gpt-5', 'groq/llama', ''):
         monkeypatch.setenv('OPENROUTER_CODING_MODEL', stray)
-        assert models.coding_model() == 'anthropic/claude-opus-5.5'
+        assert models.coding_model() == 'deepseek/deepseek-v4-pro'
     monkeypatch.setenv('OPENROUTER_RESEARCH_MODEL', 'google/gemini-3.1-pro-preview')
     assert models.research_model() == 'google/gemini-3.1-pro-preview'
 
@@ -37,7 +40,7 @@ def test_after_two_failures_she_tries_the_backup_model(tmp_path, monkeypatch):
                         projects_file=tmp_path / 'none.json')
     assert veronica.respond('hello').say == 'Still here.'
     assert [r['model'] for r in veronica.client.requests] == [
-        'anthropic/claude-sonnet-5.5', 'anthropic/claude-sonnet-5.5', 'google/gemini-3.1-flash-lite']
+        'deepseek/deepseek-v4-pro', 'deepseek/deepseek-v4-pro', 'google/gemini-3.1-flash-lite']
 
 
 def test_three_failures_are_said_plainly(tmp_path, monkeypatch):

@@ -157,8 +157,7 @@ def test_the_coder_subagent_uses_the_coding_model_and_the_hands(tmp_path, monkey
                         command_runner=lambda command, cwd, timeout=None: (0, 'built'))
     assert veronica.respond('build it').say == 'The build passed.'
     models = [r['model'] for r in veronica.client.requests]
-    assert models == ['anthropic/claude-sonnet-5.5', 'anthropic/claude-opus-5.5', 'anthropic/claude-opus-5.5',
-                      'anthropic/claude-sonnet-5.5']
+    assert models == ['deepseek/deepseek-v4-pro'] * 4       # chat and coding both on DeepSeek V4 Pro (owner, 2026-10-14)
     coder_tools = {t['function']['name'] for t in veronica.client.requests[1]['tools']}
     assert {'run_command', 'edit_file', 'run_tests'} <= coder_tools and 'send_email' not in coder_tools
     assert veronica.messages[-2]['role'] == 'tool' and 'Built: exit code 0.' in veronica.messages[-2]['content']
