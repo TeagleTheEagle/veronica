@@ -13,6 +13,7 @@ import pytest
 
 import agent
 import changes
+import models
 import safety
 import voice
 from agent import Veronica, normalize, validate
@@ -271,7 +272,8 @@ def test_a_fix_that_passes_the_tests_is_applied_and_says_so(project):
     assert (project / 'app.py').read_text(encoding='utf-8').endswith('a + b\n')
     request = veronica.client.requests[0]
     assert request['model'] == agent.chat_model() and request['tool_choice'] == 'auto'
-    assert request['max_tokens'] == agent.REPLY_TOKENS and request['extra_body'] == agent.THINKING
+    assert request['max_tokens'] == agent.REPLY_TOKENS
+    assert request['extra_body'] == dict(agent.THINKING, provider=models.provider_preferences(agent.chat_model()))
     assert request['messages'][0] == {'role': 'system', 'content': veronica.system_prompt}
 
     # Direct action: the write is already permanent, so nothing is left waiting for the owner.

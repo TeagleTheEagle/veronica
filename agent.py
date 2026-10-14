@@ -747,7 +747,7 @@ class Veronica:
     def tool_look_at_screen(self, question):
         import base64
         image = base64.b64encode(self._backend().shot()).decode('ascii')
-        params = dict(model=models.chat_model(), max_tokens=1000, messages=[{
+        params = dict(model=models.vision_model(models.chat_model()), max_tokens=1000, messages=[{
             'role': 'user', 'content': [
                 {'type': 'text', 'text': f'Look at this screenshot of the owner\'s screen and answer: {question}\n'
                                          'Answer only from what is visible; say plainly when it is not on screen.'},

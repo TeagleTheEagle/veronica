@@ -91,6 +91,7 @@ def test_looking_needs_no_yes(db, tmp_path):
     vision = [r for r in veronica.client.requests if isinstance(r['messages'][0]['content'], list)][0]
     picture = vision['messages'][0]['content'][1]
     assert picture['image_url']['url'].startswith('data:image/png;base64,') and veronica.pending_pc is None
+    assert vision['model'] == 'anthropic/claude-haiku-5.5'     # her chat model (DeepSeek V4 Pro) has no eyes
 
 
 def test_looking_and_notifying_need_no_yes(db, tmp_path):

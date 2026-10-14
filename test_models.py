@@ -60,13 +60,33 @@ def test_asi1_mini_is_listed_and_served_by_asi_one(monkeypatch):
     assert models.endpoint('anthropic/claude-sonnet-5.5') == ('https://openrouter.ai/api/v1', 'OPENROUTER_API_KEY')
     thinking = {'reasoning': {'effort': 'minimal'}}
     assert models.extra_body('asi1-mini', thinking) is None             # OpenRouter-only settings never go to ASI:One
-    assert models.extra_body('anthropic/claude-sonnet-5.5', thinking) == thinking
+    assert models.extra_body('anthropic/claude-sonnet-5.5', thinking) == dict(thinking, provider={'sort': 'price'})
     monkeypatch.setenv('OPENROUTER_HELPER_MODEL', 'asi1-mini')
     assert models.helper_model() == 'asi1-mini'
     monkeypatch.setenv('OPENROUTER_HELPER_MODEL', 'asi-1-mini')          # the old spelling is not a model: ignored
     assert models.helper_model() == 'xiaomi/mimo-v2.6-flash'
     monkeypatch.setenv('OPENROUTER_HELPER_MODEL', 'anthropic/claude-haiku-5.5')   # Haiku stays one line away
     assert models.helper_model() == 'anthropic/claude-haiku-5.5'
+
+
+# ----- pictures, and the cheapest host under a price cap (2026-10-14) ------------------------------------------------
+
+def test_a_picture_goes_to_a_model_with_eyes():
+    # DeepSeek V4 Pro is text-only (OpenRouter's model data, 2026-10-14): the screenshot call goes to Haiku 5.5 instead.
+    assert models.vision_model('deepseek/deepseek-v4-pro') == 'anthropic/claude-haiku-5.5'
+    assert models.vision_model('anthropic/claude-sonnet-5.5') == 'anthropic/claude-sonnet-5.5'
+    assert models.vision_model('google/gemini-3.1-flash-lite') == 'google/gemini-3.1-flash-lite'
+    assert models.VISION_MODEL in models.SEES_PICTURES and models.VISION_MODEL in models.ALLOWED
+
+
+def test_every_openrouter_request_asks_for_the_cheapest_host_under_the_price_cap():
+    # One model, many hosts at many prices: the request says cheapest first, and no host above the cap.
+    body = models.extra_body('deepseek/deepseek-v4-pro', {'reasoning': {'effort': 'low'}})
+    assert body == {'reasoning': {'effort': 'low'},
+                    'provider': {'sort': 'price', 'max_price': {'prompt': 1.2, 'completion': 2.4}}}
+    assert models.extra_body('deepseek/deepseek-v4-pro', None) == {'provider': {'sort': 'price', 'max_price': {'prompt': 1.2, 'completion': 2.4}}}
+    assert models.extra_body('anthropic/claude-haiku-5.5', None) == {'provider': {'sort': 'price'}}   # one price everywhere: no cap needed
+    assert models.extra_body('asi1-mini', None) is None
 
 
 def test_chat_on_asi1_mini_sends_no_openrouter_settings(tmp_path, monkeypatch):

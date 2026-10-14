@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+import models
 import research
 import store as store_mod
 import tasks
@@ -225,7 +226,8 @@ def test_research_runs_on_the_research_model_through_openrouter_with_its_own_key
     assert research.MODEL == 'deepseek/deepseek-v4-pro' and model.model_name == research.MODEL
     assert model.openai_api_base == 'https://openrouter.ai/api/v1'
     assert model.openai_api_key.get_secret_value() == 'or-test-key'
-    assert model.extra_body == {'reasoning': {'effort': research.EFFORT, 'exclude': True}}
+    assert model.extra_body == {'reasoning': {'effort': research.EFFORT, 'exclude': True},
+                                'provider': models.provider_preferences(research.MODEL)}
 
 
 def test_a_sonnet_turn_is_counted_at_sonnets_prices_and_an_unknown_model_at_the_dearest():

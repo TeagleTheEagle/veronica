@@ -33,6 +33,21 @@ MODELS = {
 ALLOWED = frozenset(MODELS.values()) | {'google/gemini-3.1-pro-preview', 'anthropic/claude-haiku-5.5',
                                         'anthropic/claude-sonnet-5.5', 'anthropic/claude-opus-5.5', 'asi1-mini'}
 
+# Models that take pictures (OpenRouter's model data, 2026-10-14). DeepSeek V4 Pro is text-only, so a call that carries
+# a screenshot (look_at_screen) goes to VISION_MODEL when the chat model has no eyes.
+SEES_PICTURES = frozenset({'anthropic/claude-haiku-5.5', 'anthropic/claude-sonnet-5.5', 'anthropic/claude-opus-5.5',
+                           'google/gemini-3.1-flash-lite', 'google/gemini-3.1-pro-preview', 'xiaomi/mimo-v2.6-flash'})
+VISION_MODEL = 'anthropic/claude-haiku-5.5'
+
+# OpenRouter serves one model through many hosts at different prices (DeepSeek V4 Pro: $0.96/$1.91 at the cheapest,
+# $10.50 out at the dearest). Every OpenRouter request asks for the cheapest host and refuses any dearer than the cap
+# (US$ per million tokens, in / out), so the price the owner chose a model for is the price he pays.
+PRICE_CAPS = {
+    'deepseek/deepseek-v4-pro': (1.2, 2.4),
+    'xiaomi/mimo-v2.6-flash': (0.2, 0.4),
+    'google/gemini-3.1-flash-lite': (0.3, 1.6),
+}
+
 LABELS = {
     'deepseek/deepseek-v4-pro': 'DeepSeek V4 Pro',
     'anthropic/claude-sonnet-5.5': 'Claude Sonnet 5.5',
@@ -77,6 +92,25 @@ def endpoint(model_id):
     return PROVIDERS[provider(model_id)]
 
 
+def vision_model(model_id):
+    """The model for a request that carries a picture: model_id when it sees pictures, else VISION_MODEL."""
+    return model_id if model_id in SEES_PICTURES else VISION_MODEL
+
+
+def provider_preferences(model_id):
+    """OpenRouter's routing settings for this model: the cheapest host first, and no host above the price cap."""
+    prefs = {'sort': 'price'}
+    cap = PRICE_CAPS.get(model_id)
+    if cap:
+        prefs['max_price'] = {'prompt': cap[0], 'completion': cap[1]}
+    return prefs
+
+
 def extra_body(model_id, thinking):
-    """OpenRouter's reasoning settings go only to OpenRouter; ASI:One's mini model has no reasoning budget."""
-    return thinking if provider(model_id) == 'openrouter' else None
+    """OpenRouter's settings go only to OpenRouter (ASI:One's mini model takes neither): the reasoning settings given,
+    plus the host preferences (cheapest first, price cap)."""
+    if provider(model_id) != 'openrouter':
+        return None
+    body = dict(thinking or {})
+    body['provider'] = provider_preferences(model_id)
+    return body
