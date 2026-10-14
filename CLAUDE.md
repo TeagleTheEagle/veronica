@@ -56,6 +56,17 @@ orb window (`VERONICA.exe` -> `.venv\Scripts\pythonw.exe app.py`), Gmail and Cal
   Copy button), timestamps, multi-line input (Enter sends, Shift+Enter newline), Ctrl+K command palette, Ctrl+L new
   chat, a Hands screen (switches, the waiting action with Allow/Deny, the log of what her hands did) and a waiting
   action bar on the chat. Planned next: the VERONICA/JARVIS merge (repo\docs\VERONICA-MERGE-PLAN.md).
+- **The neon dashboard look (owner's mockup, 2026-10-14: "give veronica this exact look"):** `ui\index.html` rebuilt
+  around the same script: a 220 px sidebar (Chat, Tools, Projects, Goals, Memory, Research, Hands; Settings and the
+  "Veronica — Online • Ready" card at the bottom; icons only under 900 px, the window's minimum is 380), the home orb
+  with orbit rings driven by her idle/listening/thinking/speaking state, "Hey, I'm Veronica. / Always on your side.",
+  quick chips, the round message bar, and a right column (live clock, Focus Mode, Current Tasks from `api.tasks()`,
+  System Status from `info`: memory count, connections, heartbeat). **Focus Mode = `listen_for_name` off** (the only
+  listening switch outside voice mode; `pause` only works inside it); the Settings "Listen for Veronica" switch is its
+  mirror. Tools is a card grid: each card opens a screen or puts a ready prompt in the message bar, nothing is sent
+  until Enter. Research is now a screen (`#research`), not a sheet. Goal progress bars show heartbeats (her data has
+  no percentage). No fonts or scripts from the network; every `pywebview.api` call is guarded, so the page renders in
+  a plain browser (`#chat`, `#tools`, ... preview hashes). Smoke keeps `#home.active`, `api.start`, `veronica.message`.
 - **Installed app (owner 2026-10-14: "a real installed app: installer, Start Menu, uninstall, her own folder in
   AppData, updates like JARVIS"; "a separate VERONICA app until the merge"):** `paths.py` says where the program and
   her data are: in this coding folder both are here (as before); in an installed release the program is

@@ -7,19 +7,25 @@
 <style>
 :root {
   --bg: #05060a;
+  --bg-2: #0b0d1a;
   --panel: rgba(255, 255, 255, 0.025);
   --card: rgba(255, 255, 255, 0.035);
   --card-hi: rgba(255, 255, 255, 0.065);
   --line: rgba(255, 255, 255, 0.08);
-  --line-hi: rgba(255, 255, 255, 0.15);
+  --line-hi: rgba(255, 255, 255, 0.16);
   --text: #eceaf4;
   --muted: #8f90a6;
   --faint: #5d5f73;
+  --violet: #7c5cff;
+  --purple: #a855f7;
+  --blue: #3b82f6;
+  --cyan: #22d3ee;
   --accent: #a99bff;
-  --accent-2: #8f7dff;
   --good: #6ee7b7;
   --bad: #fb7185;
-  --radius: 18px;
+  --warn: #fbbf24;
+  --radius: 16px;
+  --side-w: 220px;
   font-family: "Segoe UI Variable Display", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
   color-scheme: dark;
 }
@@ -27,77 +33,72 @@
 html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); overflow: hidden; }
 body {
   background:
-    radial-gradient(70% 55% at 50% 0%, rgba(120, 104, 255, 0.13), transparent 62%),
-    radial-gradient(50% 40% at 85% 100%, rgba(56, 189, 248, 0.05), transparent 60%),
-    radial-gradient(45% 45% at 10% 90%, rgba(240, 171, 252, 0.04), transparent 60%),
+    radial-gradient(60% 50% at 38% 32%, rgba(124, 92, 255, 0.14), transparent 65%),
+    radial-gradient(40% 35% at 90% 95%, rgba(59, 130, 246, 0.07), transparent 60%),
+    radial-gradient(35% 35% at 5% 100%, rgba(168, 85, 247, 0.06), transparent 60%),
+    linear-gradient(180deg, #07081200, #0b0d1a 100%),
     var(--bg);
   -webkit-font-smoothing: antialiased;
   user-select: none;
 }
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
+button:disabled { cursor: default; }
 button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 .muted { color: var(--muted); }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
 
-/* ----- the frame: phone by default; sidebar and rail on a wide window ----- */
-.app { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr; }
-#sidebar, #rail { display: none; }
+/* ----- the frame: sidebar + main; the sidebar shrinks to icons on a narrow window ----- */
+.app { position: absolute; inset: 0; display: grid; grid-template-columns: var(--side-w) 1fr; }
 #main { position: relative; min-width: 0; overflow: hidden; }
-.screen { position: absolute; inset: 0; display: none; flex-direction: column; padding: 22px 22px 0; }
+.screen { position: absolute; inset: 0; display: none; flex-direction: column; padding: 46px 26px 0; }
 .screen.active { display: flex; animation: enter .28s ease; }
 @keyframes enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (max-width: 899px) {
+  :root { --side-w: 64px; }
+  .side-label, .brand div, .side-card .who-text { display: none !important; }
+  #sidebar { padding: 14px 8px 12px; }
+  .brand { justify-content: center; padding: 0 0 16px; }
+  #orb-brand { width: 44px; height: 44px; }
+  .side-nav button { justify-content: center; padding: 0; gap: 0; }
+  .side-nav .count { position: absolute; top: 2px; right: 2px; margin: 0; min-width: 16px; height: 16px; font-size: 10px; padding: 0 4px; }
+  .side-card { justify-content: center; padding: 8px 0; border: 0; background: none; }
+  .screen { padding: 46px 12px 0; }
+}
 
-@media (min-width: 900px) {
-  .app { grid-template-columns: 252px 1fr; }
-  #sidebar { display: flex; }
-  .phone-only { display: none !important; }
-  .screen { padding: 26px 34px 0; }
-}
-@media (min-width: 1220px) {
-  .app { grid-template-columns: 252px 1fr 316px; }
-  #rail { display: flex; }
-}
-@media (max-width: 899px) { .desk-only { display: none !important; } }
+/* ----- glass ----- */
+.glass { border: 1px solid var(--line); border-radius: var(--radius); background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.018)); box-shadow: 0 0 0 1px rgba(124,92,255,.05) inset, 0 12px 34px rgba(0,0,0,.32); }
+.glow { box-shadow: 0 0 0 1px rgba(124,92,255,.08) inset, 0 0 30px rgba(124,92,255,.12), 0 12px 34px rgba(0,0,0,.32); }
 
 /* ----- sidebar ----- */
-#sidebar { flex-direction: column; padding: 22px 16px 18px; border-right: 1px solid var(--line); background: linear-gradient(180deg, rgba(14, 14, 26, 0.75), rgba(6, 7, 12, 0.75)); backdrop-filter: blur(16px); }
-.brand { display: flex; align-items: center; gap: 10px; padding: 4px 6px 22px; }
-#orb-brand { width: 54px; height: 54px; }
-.brand b { display: block; font-weight: 400; font-size: 21px; letter-spacing: .2px; }
-.brand small { color: var(--muted); font-size: 11.5px; }
-.side-nav { display: flex; flex-direction: column; gap: 4px; }
-.side-nav button { display: flex; align-items: center; gap: 12px; height: 42px; padding: 0 14px; border-radius: 12px; font-size: 14.5px; color: #cfd0dc; border: 1px solid transparent; text-align: left; }
+#sidebar { position: relative; display: flex; flex-direction: column; padding: 18px 14px 16px; border-right: 1px solid var(--line); background: linear-gradient(180deg, rgba(12, 13, 26, 0.85), rgba(6, 7, 14, 0.85)); backdrop-filter: blur(16px); min-width: 0; overflow: hidden; }
+.brand { display: flex; align-items: center; gap: 10px; padding: 2px 4px 18px; }
+#orb-brand { width: 56px; height: 56px; flex: none; }
+.brand b { display: block; font-weight: 500; font-size: 20px; letter-spacing: .2px; }
+.brand small { color: var(--muted); font-size: 11px; white-space: nowrap; }
+.side-nav { display: flex; flex-direction: column; gap: 6px; }
+.side-nav button { position: relative; display: flex; align-items: center; gap: 12px; height: 42px; padding: 0 14px; border-radius: 12px; font-size: 14.5px; color: #cfd0dc; border: 1px solid transparent; text-align: left; white-space: nowrap; }
 .side-nav button:hover { background: var(--card); }
-.side-nav button.on { background: linear-gradient(90deg, rgba(143, 125, 255, 0.28), rgba(143, 125, 255, 0.12)); border-color: rgba(169, 155, 255, 0.45); color: #fff; box-shadow: 0 0 22px rgba(143, 125, 255, .18); }
+.side-nav button.on { background: linear-gradient(90deg, rgba(124, 92, 255, 0.2), rgba(124, 92, 255, 0.08)); border-color: rgba(124, 92, 255, 0.55); color: #fff; box-shadow: 0 0 22px rgba(124, 92, 255, .22), inset 0 0 14px rgba(124,92,255,.08); }
+.side-nav button.on svg { color: #c4b5fd; }
+.side-nav .count { margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: #9d8cff; color: #17133a; font-size: 11.5px; font-weight: 700; display: none; place-items: center; }
+.side-nav .count.show { display: grid; }
 .side-gap { flex: 1; }
-.side-card { display: flex; align-items: center; gap: 11px; padding: 12px; border-radius: 16px; border: 1px solid var(--line); background: var(--card); }
-.side-card .avatar { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(135deg, #b8a9ff, #7c6cff); color: #120f2b; font-weight: 700; font-size: 14px; }
+.side-card { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line); background: var(--card); text-align: left; width: 100%; margin-top: 8px; }
+.side-card .avatar { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; flex: none; background: linear-gradient(135deg, #b8a9ff, #7c5cff); color: #120f2b; font-weight: 700; font-size: 14px; box-shadow: 0 0 14px rgba(124,92,255,.5); }
 .side-card b { display: block; font-weight: 500; font-size: 13.5px; }
-.side-card small { color: var(--muted); font-size: 11.5px; }
+.side-card small { color: var(--muted); font-size: 11.5px; display: flex; align-items: center; gap: 5px; }
+.side-card small i { width: 6px; height: 6px; border-radius: 50%; background: var(--good); box-shadow: 0 0 8px var(--good); }
 
-/* ----- right rail ----- */
-#rail { flex-direction: column; gap: 14px; padding: 22px 18px 18px 0; overflow-y: auto; }
-.rail-box { border: 1px solid var(--line); border-radius: 18px; background: var(--panel); padding: 14px; }
-.rail-box h5 { margin: 2px 4px 12px; display: flex; justify-content: space-between; align-items: baseline; font-weight: 500; font-size: 15px; }
-.rail-box h5 button { color: var(--accent); font-size: 12px; }
-.sugg { width: 100%; display: grid; grid-template-columns: 34px 1fr 16px; align-items: center; gap: 10px; padding: 10px; border-radius: 13px; border: 1px solid var(--line); background: var(--card); text-align: left; margin-bottom: 8px; }
-.sugg:hover { background: var(--card-hi); border-color: var(--line-hi); }
-.sugg .ic { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: rgba(143, 125, 255, .14); color: #c9c0ff; }
-.sugg b { display: block; font-weight: 500; font-size: 13px; }
-.sugg span { display: block; color: var(--muted); font-size: 11.5px; margin-top: 1px; }
-.sugg .chev { width: 16px; height: 16px; color: var(--muted); }
-.recent { width: 100%; display: flex; align-items: center; gap: 10px; padding: 9px 6px; border-radius: 10px; font-size: 13.5px; text-align: left; color: #d6d7e2; }
-.recent:hover { background: var(--card); }
-.recent .st { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); flex: none; }
-.recent .st.running, .recent .st.queued { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
-.recent .st.succeeded { background: var(--good); }
-.recent .st.failed { background: var(--bad); }
-.recent span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.empty-note { color: var(--muted); font-size: 12.5px; padding: 4px 6px; line-height: 1.5; }
-
-.icon-btn { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: var(--text); }
-.icon-btn.ring { border: 1px solid var(--line-hi); background: var(--card); }
-.icon-btn:hover { background: var(--card-hi); }
+/* ----- top bar: search (Ctrl+K) and the bell (goals waiting) ----- */
+#topbar { position: absolute; top: 10px; right: 14px; z-index: 5; display: flex; gap: 2px; }
+#topbar button { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; color: var(--muted); position: relative; }
+#topbar button:hover { background: var(--card-hi); color: var(--text); }
+#topbar svg { width: 18px; height: 18px; }
+#topbar .dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--purple); box-shadow: 0 0 8px var(--purple); display: none; }
+#topbar .dot.show { display: block; }
 
 /* ----- splash ----- */
 #splash { align-items: center; justify-content: center; padding-bottom: 60px; }
@@ -108,35 +109,30 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 @keyframes bar { 50% { opacity: .35; } }
 
 /* ----- home ----- */
-.top { display: flex; align-items: center; justify-content: space-between; }
-.dots4 { display: grid; grid-template-columns: 7px 7px; gap: 5px; padding: 12px; }
-.dots4 i { width: 7px; height: 7px; border-radius: 50%; background: var(--text); }
-.home-main { flex: 1; min-height: 0; display: flex; flex-direction: column; width: 100%; max-width: 820px; margin: 0 auto; }
+#home { padding: 40px 22px 0 26px; }
+.home-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr; gap: 18px; }
+@media (min-width: 1120px) { .home-grid { grid-template-columns: minmax(0, 1fr) 300px; } }
+.home-main { min-width: 0; min-height: 0; display: flex; flex-direction: column; width: 100%; max-width: 840px; margin: 0 auto; }
 #hero { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.greet { padding-top: 22px; }
-.greet h1 { font-weight: 300; font-size: 36px; line-height: 1.12; margin: 0 0 14px; letter-spacing: .2px; }
-.greet h1 em { font-style: normal; color: var(--accent); }
-.greet p { margin: 0; color: var(--muted); font-size: 15.5px; line-height: 1.5; max-width: 320px; }
-.hero-orb { flex: 1; min-height: 160px; display: grid; place-items: center; }
-#orb-hero { width: 100%; height: 100%; max-height: 380px; cursor: pointer; }
-.desk-greet { text-align: center; margin: 0 0 18px; }
-.desk-greet h1 { font-weight: 400; font-size: 34px; margin: 0 0 8px; }
-.desk-greet p { margin: 0; color: var(--muted); font-size: 16px; }
-@media (min-width: 900px) { .greet { display: none; } .hero-orb { max-height: 400px; } }
-@media (max-width: 899px) { .desk-greet { display: none; } }
+.hero-orb { flex: 1; min-height: 150px; display: grid; place-items: center; }
+#orb-hero { width: 100%; height: 100%; max-height: 420px; cursor: pointer; }
+.desk-greet { text-align: center; margin: 0 0 20px; }
+.desk-greet h1 { font-weight: 400; font-size: 36px; margin: 0 0 8px; letter-spacing: .2px; }
+.desk-greet p { margin: 0; color: var(--muted); font-size: 17px; }
+@media (max-height: 700px) { .desk-greet h1 { font-size: 28px; } .desk-greet { margin-bottom: 10px; } .hero-orb { min-height: 110px; } }
 
-.chips { margin: 0 0 16px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
-.chip { height: 42px; display: flex; align-items: center; gap: 8px; padding: 0 14px 0 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); font-size: 13.5px; }
-.chip:hover { background: var(--card-hi); border-color: var(--line-hi); }
-.chip .ci { width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; }
-.chip .ci svg { width: 16px; height: 16px; }
-@media (max-width: 899px) { .chips { display: none; } }
+.chips { margin: 0 0 18px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.chip { height: 44px; display: flex; align-items: center; gap: 9px; padding: 0 16px 0 12px; border-radius: 12px; border: 1px solid var(--line); background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.015)); font-size: 13.5px; color: #e4e2f0; }
+.chip:hover { background: rgba(124,92,255,.12); border-color: rgba(124,92,255,.5); box-shadow: 0 0 18px rgba(124,92,255,.15); }
+.chip .ci { width: 22px; height: 22px; display: grid; place-items: center; color: #c4b5fd; }
+.chip .ci svg { width: 17px; height: 17px; }
+@media (max-width: 560px) { .chips { display: none; } }
 
-#thread { flex: 1; min-height: 0; overflow-y: auto; padding: 18px 2px 10px; display: none; flex-direction: column; gap: 14px; scrollbar-width: thin; scrollbar-color: #24252f transparent; }
+#thread { flex: 1; min-height: 0; overflow-y: auto; padding: 8px 4px 10px; display: none; flex-direction: column; gap: 14px; scrollbar-width: thin; scrollbar-color: #24252f transparent; }
 .chatting #hero { display: none; }
 .chatting #thread { display: flex; }
 .msg { max-width: 86%; font-size: 14.5px; line-height: 1.55; white-space: pre-wrap; word-wrap: break-word; user-select: text; }
-.msg.you { align-self: flex-end; padding: 10px 15px; border-radius: 18px 18px 6px 18px; background: rgba(169, 155, 255, .14); border: 1px solid rgba(169, 155, 255, .22); }
+.msg.you { align-self: flex-end; padding: 10px 15px; border-radius: 16px 16px 6px 16px; background: linear-gradient(135deg, rgba(124,92,255,.22), rgba(168,85,247,.14)); border: 1px solid rgba(124,92,255,.35); }
 .msg.veronica { align-self: flex-start; display: grid; grid-template-columns: 24px 1fr; gap: 10px; }
 .msg.veronica .mini { width: 24px; height: 24px; border-radius: 50%; margin-top: 1px; background: radial-gradient(circle at 35% 30%, #e8e4ff 0 8%, #8f7dff 30%, #38bdf8 62%, #1b1745 100%); box-shadow: 0 0 10px rgba(143, 125, 255, .5); }
 .msg code { font-family: "Cascadia Code", Consolas, monospace; font-size: 13px; background: rgba(255,255,255,.07); padding: 1px 5px; border-radius: 5px; }
@@ -153,83 +149,158 @@ pre.code .add { color: #86efac; } pre.code .del { color: #fda4af; } pre.code .hu
 .project-pill b { color: var(--text); font-weight: 500; }
 .project-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); }
 .project-pill.open .dot { background: var(--good); box-shadow: 0 0 8px rgba(110, 231, 183, .6); }
-.changes { margin: 0 0 10px; padding: 12px 14px; border-radius: 16px; border: 1px solid rgba(169,155,255,.28); background: rgba(169,155,255,.07); display: none; }
+.changes { margin: 0 0 10px; padding: 12px 14px; border-radius: 14px; border: 1px solid rgba(124,92,255,.35); background: rgba(124,92,255,.08); display: none; }
 .changes.show { display: block; }
 .changes .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .changes strong { font-weight: 500; font-size: 14px; display: block; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .changes small { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .changes .acts { display: flex; gap: 8px; flex: none; }
-.pill-btn { height: 32px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line-hi); font-size: 13px; background: var(--card); }
-.pill-btn.primary { background: linear-gradient(180deg, #c3b8ff, #9d8cff); color: #17133a; border: 0; font-weight: 600; }
+.pill-btn { height: 32px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line-hi); font-size: 13px; background: var(--card); white-space: nowrap; }
+.pill-btn.primary { background: linear-gradient(135deg, #a78bfa, #7c5cff); color: #fff; border: 0; font-weight: 600; box-shadow: 0 0 16px rgba(124,92,255,.35); }
 .pill-btn.danger { border-color: rgba(251, 113, 133, .45); color: #fecdd3; }
 .pill-btn:hover { filter: brightness(1.1); }
 
-.ask { margin: 0 0 14px; display: flex; align-items: flex-end; gap: 6px; min-height: 60px; padding: 8px; border-radius: 999px; border: 1px solid rgba(169,155,255,.42); background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.02)); box-shadow: 0 0 28px rgba(143,125,255,.14), inset 0 1px 0 rgba(255,255,255,.05); }
-.ask input, .ask textarea { flex: 1; min-width: 0; background: none; border: 0; outline: none; color: var(--text); font: inherit; font-size: 15px; padding: 8px 6px; user-select: text; }
-.ask textarea { resize: none; max-height: 132px; line-height: 1.45; scrollbar-width: thin; align-self: center; }
-.ask .round { align-self: flex-end; }
-.ask input::placeholder { color: var(--muted); }
-.round { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; }
+.ask { margin: 0 0 16px; display: flex; align-items: flex-end; gap: 6px; min-height: 64px; padding: 9px; border-radius: 999px; border: 1px solid rgba(124,92,255,.5); background: linear-gradient(180deg, rgba(20,18,40,.85), rgba(10,10,22,.85)); box-shadow: 0 0 34px rgba(124,92,255,.18), inset 0 1px 0 rgba(255,255,255,.05); }
+.ask textarea { flex: 1; min-width: 0; background: none; border: 0; outline: none; color: var(--text); font: inherit; font-size: 15px; padding: 8px 6px; user-select: text; resize: none; overflow-y: hidden; max-height: 132px; line-height: 1.45; scrollbar-width: thin; align-self: center; }
+.ask textarea::placeholder { color: var(--muted); }
+.round { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; flex: none; }
 .round:hover { background: var(--card-hi); }
-.send { background: linear-gradient(180deg, #c3b8ff, #9d8cff); color: #17133a; box-shadow: 0 0 18px rgba(157, 140, 255, .45); }
-.send svg { stroke-width: 2.2; }
-.wave { border: 1px solid rgba(169,155,255,.5); background: rgba(169,155,255,.12); color: #d9d3ff; }
+.ask .plus { border: 1px solid var(--line-hi); background: var(--card); color: #d6d7e2; }
+.send { background: linear-gradient(135deg, #a78bfa, #7c5cff); color: #fff; box-shadow: 0 0 20px rgba(124, 92, 255, .55); }
+.send svg { stroke-width: 2.1; }
+.wave { border: 1px solid rgba(124,92,255,.55); background: rgba(124,92,255,.14); color: #d9d3ff; }
 
-.nav { margin: 0 -22px; display: grid; grid-template-columns: repeat(4, 1fr); padding: 10px 6px 14px; border-top: 1px solid var(--line); background: rgba(5, 6, 10, .85); backdrop-filter: blur(10px); }
-.nav button { display: grid; justify-items: center; gap: 6px; font-size: 12px; color: var(--muted); padding: 4px 0; }
-.nav button.on { color: var(--text); }
-.nav .home-dot { width: 22px; height: 22px; border-radius: 7px; background: radial-gradient(circle at 35% 30%, #fff 0 10%, #b9b0ff 35%, #7e6cff 75%); box-shadow: 0 0 10px rgba(143,125,255,.7); }
-.nav button:not(.on) .home-dot { background: none; box-shadow: none; border: 1.6px solid currentColor; }
+/* ----- home: right column ----- */
+.home-side { display: none; flex-direction: column; gap: 14px; min-height: 0; overflow-y: auto; padding: 0 2px 16px 0; scrollbar-width: thin; }
+@media (min-width: 1120px) { .home-side { display: flex; } }
+.side-box { padding: 14px 16px; }
+.clock-box { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: linear-gradient(135deg, rgba(124,92,255,.16), rgba(59,130,246,.06)), linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015)); }
+.clock-box small { display: block; color: var(--muted); font-size: 12px; }
+.clock-box b { display: block; font-weight: 500; font-size: 26px; letter-spacing: .3px; margin-top: 2px; }
+.clock-box b span { font-size: 14px; color: var(--muted); margin-left: 4px; }
+.clock-box .globe { width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(255,255,255,.15); background: radial-gradient(circle at 35% 35%, rgba(124,92,255,.5), rgba(59,130,246,.15) 60%, transparent 70%); position: relative; flex: none; }
+.clock-box .globe::before, .clock-box .globe::after { content: ""; position: absolute; inset: 4px; border-radius: 50%; border: 1px solid rgba(255,255,255,.12); }
+.clock-box .globe::after { inset: 4px 14px; }
+.focus-box { display: grid; grid-template-columns: 36px 1fr auto; align-items: center; gap: 12px; width: 100%; text-align: left; }
+.focus-box .ic { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: rgba(124,92,255,.15); color: #c4b5fd; }
+.focus-box b { display: block; font-weight: 500; font-size: 14.5px; }
+.focus-box small { color: var(--muted); font-size: 12px; }
+.side-box h5 { margin: 0 0 10px; display: flex; justify-content: space-between; align-items: center; font-weight: 500; font-size: 14.5px; }
+.side-box h5 button { color: var(--muted); font-size: 12px; }
+.side-box h5 button:hover { color: var(--text); }
+.task-line { width: 100%; display: flex; align-items: center; gap: 10px; padding: 7px 4px; border-radius: 10px; font-size: 13.5px; text-align: left; color: #d6d7e2; }
+.task-line:hover { background: var(--card); }
+.task-line .st { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); flex: none; }
+.task-line .st.running, .task-line .st.queued { background: var(--purple); box-shadow: 0 0 8px var(--purple); }
+.task-line .st.succeeded { background: var(--good); }
+.task-line .st.failed, .task-line .st.cancelled { background: var(--bad); }
+.task-line span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.see-all { display: inline-block; margin-top: 8px; color: var(--accent); font-size: 12.5px; }
+.empty-note { color: var(--muted); font-size: 12.5px; padding: 4px 2px; line-height: 1.5; }
+.status-row { display: flex; align-items: center; gap: 10px; padding: 7px 2px; font-size: 13.5px; }
+.status-row .ic { width: 22px; height: 22px; border-radius: 6px; border: 1px solid rgba(255,255,255,.12); display: grid; place-items: center; color: var(--good); flex: none; }
+.status-row .ic svg { width: 13px; height: 13px; stroke-width: 2; }
+.status-row .ic.purple { color: #c4b5fd; } .status-row .ic.blue { color: #93c5fd; } .status-row .ic.gold { color: #fcd34d; }
+.status-row em { font-style: normal; color: var(--muted); margin-left: auto; font-size: 12.5px; }
 
 /* ----- voice ----- */
 #voice { align-items: center; padding-bottom: 34px; }
-#voice .top { width: 100%; justify-content: flex-end; }
+#voice .top { width: 100%; display: flex; justify-content: flex-end; }
 .voice-stage { flex: 1; width: 100%; display: grid; place-items: center; min-height: 0; }
 #orb-voice { width: 100%; height: 100%; max-height: 560px; cursor: pointer; }
 #voice-status { font-weight: 300; font-size: 26px; margin: 0; }
 #voice-sub { color: var(--muted); font-size: 14px; margin: 6px 0 0; min-height: 20px; }
 #voice-caption { color: var(--muted); font-size: 14px; line-height: 1.45; text-align: center; max-width: 420px; min-height: 40px; margin: 0 0 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.wave-btn { margin-top: 26px; width: 76px; height: 76px; border-radius: 50%; display: grid; place-items: center; border: 1px solid rgba(169,155,255,.45); background: radial-gradient(circle at 50% 40%, rgba(169,155,255,.12), rgba(169,155,255,.02)); box-shadow: 0 0 30px rgba(143,125,255,.25), inset 0 0 18px rgba(143,125,255,.18); color: #d9d3ff; }
+.wave-btn { margin-top: 26px; width: 76px; height: 76px; border-radius: 50%; display: grid; place-items: center; border: 1px solid rgba(124,92,255,.5); background: radial-gradient(circle at 50% 40%, rgba(124,92,255,.16), rgba(124,92,255,.02)); box-shadow: 0 0 30px rgba(124,92,255,.3), inset 0 0 18px rgba(124,92,255,.18); color: #d9d3ff; }
 .wave-btn svg { width: 28px; height: 28px; }
 .wave-btn.off { border-color: var(--line-hi); box-shadow: none; color: var(--muted); }
+.icon-btn { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: var(--text); }
+.icon-btn.ring { border: 1px solid var(--line-hi); background: var(--card); }
+.icon-btn:hover { background: var(--card-hi); }
 
 /* ----- pages ----- */
-.page { width: 100%; max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; min-height: 0; flex: 1; }
-.page-head { padding: 8px 0 18px; }
-.page-head h2 { font-weight: 400; font-size: 30px; margin: 14px 0 6px; }
-.page-head p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.45; }
-@media (min-width: 900px) { .page-head .back { display: none; } .page-head h2 { margin-top: 6px; } }
-.search { display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--card); margin-bottom: 12px; }
-.search input { flex: 1; background: none; border: 0; outline: none; color: var(--text); font: inherit; font-size: 14px; user-select: text; }
-.tabs { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.page { width: 100%; max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; min-height: 0; flex: 1; }
+.page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 0 0 18px; }
+.page-head h2 { font-weight: 500; font-size: 30px; margin: 0 0 6px; letter-spacing: .2px; }
+.page-head p { margin: 0; color: var(--muted); font-size: 14.5px; line-height: 1.45; }
+.page-head .head-tools { display: flex; align-items: center; gap: 10px; flex: none; padding-top: 6px; }
+.btn-add { height: 36px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px 0 10px; border-radius: 10px; font-size: 13.5px; font-weight: 600; color: #fff; background: linear-gradient(135deg, #a78bfa, #7c5cff); box-shadow: 0 0 18px rgba(124,92,255,.35); }
+.btn-add svg { width: 16px; height: 16px; stroke-width: 2.2; }
+.search { display: flex; align-items: center; gap: 10px; height: 42px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); margin-bottom: 14px; width: 100%; max-width: 300px; }
+.search svg { color: var(--muted); width: 18px; height: 18px; }
+.search input { flex: 1; min-width: 0; background: none; border: 0; outline: none; color: var(--text); font: inherit; font-size: 14px; user-select: text; }
+.tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
 .tabs button { height: 32px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); font-size: 13px; color: #cfd0dc; }
-.tabs button.on { border-color: rgba(169,155,255,.6); background: rgba(143,125,255,.18); color: #fff; }
-.cards { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; padding-bottom: 22px; min-height: 0; }
-.card { width: 100%; display: grid; grid-template-columns: 42px 1fr 20px; align-items: center; gap: 12px; padding: 13px 14px 13px 12px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--card); text-align: left; }
-.card:hover { background: var(--card-hi); border-color: var(--line-hi); }
-.card .ic { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.05); border: 1px solid var(--line); }
-.card b { display: block; font-weight: 500; font-size: 15px; }
-.card span { display: block; color: var(--muted); font-size: 13px; line-height: 1.4; margin-top: 2px; }
-.card .chev { color: var(--muted); }
-.card .detail { display: none; grid-column: 2 / 4; color: var(--muted); font-size: 13px; line-height: 1.5; }
-.card.open .detail { display: block; }
+.tabs button.on { border-color: rgba(124,92,255,.7); background: rgba(124,92,255,.2); color: #fff; box-shadow: 0 0 14px rgba(124,92,255,.2); }
+.scroll { overflow-y: auto; min-height: 0; padding-bottom: 22px; flex: 1; scrollbar-width: thin; }
 .section-title { margin: 14px 2px 8px; color: var(--muted); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; }
-.mem { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--card); }
-.mem b { font-weight: 500; font-size: 14px; user-select: text; }
-.mem small { grid-column: 1 / 2; color: var(--muted); font-size: 11.5px; }
-.mem .acts { grid-row: 1 / 3; grid-column: 2; display: flex; gap: 6px; }
-.side-nav .count { margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: #9d8cff; color: #17133a; font-size: 11.5px; font-weight: 700; display: none; place-items: center; }
-.side-nav .count.show { display: grid; }
-.goal { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: start; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--card); margin-bottom: 8px; }
-.goal b { font-weight: 500; font-size: 14px; user-select: text; }
-.goal .tag { display: inline-block; font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 1px 7px; border-radius: 6px; margin-right: 6px; background: rgba(169,155,255,.18); color: #cfc7ff; vertical-align: 1px; }
+
+/* tool grid */
+.tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 12px; overflow-y: auto; padding: 2px 2px 22px; min-height: 0; align-content: start; scrollbar-width: thin; }
+.tool { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 16px 16px 14px; text-align: left; min-height: 130px; position: relative; transition: transform .15s ease, border-color .15s ease; }
+.tool:hover { border-color: rgba(124,92,255,.55); transform: translateY(-2px); box-shadow: 0 0 26px rgba(124,92,255,.16), 0 12px 34px rgba(0,0,0,.32); }
+.tool .ic { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; margin-bottom: 4px; background: rgba(124,92,255,.14); border: 1px solid rgba(124,92,255,.3); color: #c4b5fd; box-shadow: 0 0 16px rgba(124,92,255,.18); }
+.tool .ic.blue { background: rgba(59,130,246,.14); border-color: rgba(59,130,246,.35); color: #93c5fd; box-shadow: 0 0 16px rgba(59,130,246,.18); }
+.tool .ic.cyan { background: rgba(34,211,238,.12); border-color: rgba(34,211,238,.3); color: #67e8f9; box-shadow: 0 0 16px rgba(34,211,238,.15); }
+.tool .ic.pink { background: rgba(236,72,153,.12); border-color: rgba(236,72,153,.3); color: #f9a8d4; box-shadow: 0 0 16px rgba(236,72,153,.15); }
+.tool b { display: block; font-weight: 500; font-size: 14.5px; }
+.tool span { display: block; color: var(--muted); font-size: 12px; line-height: 1.4; }
+.tool .chev { position: absolute; right: 14px; bottom: 12px; width: 16px; height: 16px; color: var(--muted); }
+
+/* project rows */
+.proj { width: 100%; display: grid; grid-template-columns: 44px 1fr auto auto; align-items: center; gap: 12px; padding: 12px 10px 12px 12px; margin-bottom: 10px; text-align: left; }
+.proj:hover { border-color: rgba(124,92,255,.5); }
+.proj .ic { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: rgba(124,92,255,.14); border: 1px solid rgba(124,92,255,.3); color: #c4b5fd; }
+.proj b { display: block; font-weight: 500; font-size: 14.5px; }
+.proj span { display: block; color: var(--muted); font-size: 12px; word-break: break-all; }
+.proj .more { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; color: var(--muted); }
+.proj .more:hover { background: var(--card-hi); color: var(--text); }
+.pill { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 7px; font-size: 11.5px; font-weight: 600; letter-spacing: .02em; background: rgba(255,255,255,.08); color: #d6d7e2; }
+.pill.active { background: rgba(110,231,183,.14); color: #86efac; }
+.pill.purple { background: rgba(124,92,255,.2); color: #d9d3ff; }
+.pill.gold { background: rgba(251,191,36,.14); color: #fcd34d; }
+.pill.red { background: rgba(251,113,133,.14); color: #fecdd3; }
+.pill.blue { background: rgba(59,130,246,.16); color: #93c5fd; }
+.path-row { display: flex; gap: 8px; margin: 6px 0 12px; }
+.path-row input { flex: 1; min-width: 0; height: 40px; border-radius: 12px; border: 1px solid var(--line-hi); background: #08090f; color: var(--text); padding: 0 12px; font: inherit; font-size: 13.5px; user-select: text; }
+
+/* goals */
+.goal { display: grid; grid-template-columns: 40px 1fr auto; gap: 4px 12px; align-items: start; padding: 14px 16px 12px; margin-bottom: 10px; }
+.goal .gic { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; grid-row: 1 / 4; background: rgba(124,92,255,.14); border: 1px solid rgba(124,92,255,.3); color: #c4b5fd; }
+.goal .gic.k-fix { background: rgba(251,113,133,.12); border-color: rgba(251,113,133,.3); color: #fda4af; }
+.goal .gic.k-task { background: rgba(110,231,183,.12); border-color: rgba(110,231,183,.3); color: #86efac; }
+.goal .gic.gold { background: rgba(251,191,36,.12); border-color: rgba(251,191,36,.3); color: #fcd34d; }
+.goal b { font-weight: 500; font-size: 14.5px; user-select: text; }
+.goal .tag { display: inline-block; font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 1px 7px; border-radius: 6px; margin-right: 6px; background: rgba(124,92,255,.2); color: #d9d3ff; vertical-align: 1px; }
 .goal .tag.fix { background: rgba(251,113,133,.16); color: #fecdd3; } .goal .tag.task { background: rgba(110,231,183,.14); color: #86efac; }
-.goal p { grid-column: 1 / 3; margin: 2px 0 0; color: var(--muted); font-size: 12.5px; line-height: 1.5; user-select: text; }
-.goal small { grid-column: 1 / 3; color: var(--muted); font-size: 11.5px; }
+.goal p { grid-column: 2 / 4; margin: 2px 0 0; color: var(--muted); font-size: 12.5px; line-height: 1.5; user-select: text; }
+.goal small { grid-column: 2 / 4; color: var(--muted); font-size: 11.5px; }
 .goal .acts { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
-.goal.waiting { border-color: rgba(169,155,255,.45); }
+.goal.waiting { border-color: rgba(124,92,255,.5); box-shadow: 0 0 22px rgba(124,92,255,.12); }
+.goal.plain { grid-template-columns: 1fr auto; }
+.goal.plain p, .goal.plain small { grid-column: 1 / 3; }
+.bar { grid-column: 2 / 4; display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+.bar .track { flex: 1; height: 5px; border-radius: 5px; background: rgba(255,255,255,.08); overflow: hidden; }
+.bar .fill { height: 100%; border-radius: 5px; background: linear-gradient(90deg, #7c5cff, #a855f7); box-shadow: 0 0 10px rgba(168,85,247,.6); }
+.bar em { font-style: normal; font-size: 12px; color: var(--muted); min-width: 32px; text-align: right; }
 .set select { background: transparent; color: var(--muted); border: 0; font: inherit; font-size: 13px; }
 .set select option { background: #11121a; color: var(--text); }
+
+/* memory */
+.mem { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; align-items: start; padding: 13px 16px; margin-bottom: 10px; }
+.mem b { font-weight: 500; font-size: 14px; user-select: text; line-height: 1.45; }
+.mem .meta { grid-column: 1 / 2; display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 11.5px; flex-wrap: wrap; }
+.mem .acts { grid-row: 1 / 3; grid-column: 2; display: flex; gap: 6px; }
+.mem textarea { width: 100%; min-height: 44px; border-radius: 10px; border: 1px solid var(--line-hi); background: #08090f; color: var(--text); font: inherit; font-size: 13.5px; padding: 8px 10px; resize: vertical; user-select: text; }
+
+/* research */
+.task-row { width: 100%; display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 13px 16px; margin-bottom: 10px; text-align: left; }
+.task-row:hover { border-color: rgba(124,92,255,.5); }
+.task-row b { font-weight: 500; font-size: 14.5px; }
+.task-row span { grid-column: 1 / 3; color: var(--muted); font-size: 12px; word-break: break-word; }
+.task-row em { font-style: normal; font-size: 12px; color: var(--muted); }
+.task-row em.succeeded { color: var(--good); } .task-row em.failed { color: var(--bad); } .task-row em.running, .task-row em.queued { color: #c4b5fd; }
+
 /* markdown in the thread */
 .md { font-size: 14.5px; line-height: 1.6; }
 .md p { margin: 0 0 8px; } .md p:last-child { margin-bottom: 0; }
@@ -246,95 +317,131 @@ pre.code .add { color: #86efac; } pre.code .del { color: #fda4af; } pre.code .hu
 #pcbar .row { display: flex; gap: 12px; align-items: center; }
 .hands-off { display: none; align-items: center; gap: 8px; margin: 0 0 8px; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(251,113,133,.4); color: #fecdd3; font-size: 12.5px; width: fit-content; }
 .hands-off.show { display: flex; }
-/* command palette */
-#palette { position: fixed; inset: 0; display: none; place-items: start center; z-index: 60; background: rgba(4,5,9,.55); backdrop-filter: blur(3px); padding-top: 14vh; }
-#palette.show { display: grid; }
-#palette .box { width: min(560px, 92vw); border-radius: 16px; border: 1px solid var(--line-hi); background: #0d0e16; box-shadow: 0 24px 60px rgba(0,0,0,.5); overflow: hidden; }
-#palette input { width: 100%; height: 48px; padding: 0 16px; background: none; border: 0; outline: none; color: var(--text); font: inherit; font-size: 15px; border-bottom: 1px solid var(--line); }
-#palette .items { max-height: 320px; overflow-y: auto; padding: 6px; }
-#palette button.item { width: 100%; display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 10px; text-align: left; font-size: 14px; }
-#palette button.item:hover, #palette button.item.on { background: var(--card-hi); }
-#palette button.item small { margin-left: auto; color: var(--faint); font-size: 11.5px; }
-.mem textarea { width: 100%; min-height: 44px; border-radius: 10px; border: 1px solid var(--line-hi); background: #08090f; color: var(--text); font: inherit; font-size: 13.5px; padding: 8px 10px; resize: vertical; user-select: text; }
 
-#profile .who { display: grid; justify-items: center; gap: 8px; padding: 0 0 20px; }
-#orb-profile { width: 130px; height: 130px; }
-.who h3 { margin: 0; font-weight: 400; font-size: 24px; display: flex; align-items: center; gap: 8px; }
-.who p { margin: 0; color: var(--muted); font-size: 13.5px; }
-.badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 6px; background: rgba(169,155,255,.22); color: #cfc7ff; }
-.settings { border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); overflow: hidden; margin-bottom: 14px; }
-.set { display: grid; grid-template-columns: 26px 1fr auto; align-items: center; gap: 12px; padding: 0 16px; height: 52px; width: 100%; text-align: left; border-top: 1px solid var(--line); font-size: 14.5px; }
+/* settings */
+.settings { overflow: hidden; margin-bottom: 14px; }
+.set { display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 12px; padding: 0 16px; min-height: 56px; width: 100%; text-align: left; border-top: 1px solid var(--line); font-size: 14.5px; }
 .set:first-child { border-top: 0; }
+.set .sic { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; background: rgba(124,92,255,.12); border: 1px solid rgba(124,92,255,.25); color: #c4b5fd; }
+.set .sic svg { width: 17px; height: 17px; }
+.set .two { display: flex; flex-direction: column; gap: 2px; padding: 10px 0; }
+.set .two small { color: var(--muted); font-size: 12px; }
 .set em { font-style: normal; color: var(--muted); font-size: 13px; display: flex; align-items: center; gap: 6px; }
 .set em.ok { color: var(--good); }
-.switch { width: 44px; height: 26px; border-radius: 999px; background: #2a2b36; position: relative; transition: background .2s; }
+.set em svg { width: 16px; height: 16px; }
+button.set:hover { background: var(--card); }
+.switch { width: 44px; height: 26px; border-radius: 999px; background: #2a2b36; position: relative; transition: background .2s; flex: none; }
 .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform .2s; }
-.switch.on { background: linear-gradient(90deg, #8f7dff, #b3a6ff); }
+.switch.on { background: linear-gradient(90deg, #7c5cff, #a855f7); box-shadow: 0 0 12px rgba(124,92,255,.5); }
 .switch.on::after { transform: translateX(18px); }
-.scroll { overflow-y: auto; min-height: 0; padding-bottom: 22px; }
+.seg { display: flex; gap: 10px; padding: 8px 0; }
+.seg button { width: 72px; display: grid; justify-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); }
+.seg .swatch { width: 60px; height: 36px; border-radius: 8px; border: 1px solid var(--line); background: #15161f; }
+.seg .swatch.light { background: #e9e9f2; }
+.seg .swatch.sys { background: linear-gradient(90deg, #15161f 50%, #e9e9f2 50%); }
+.seg button.on { color: var(--text); }
+.seg button.on .swatch { border-color: rgba(124,92,255,.8); box-shadow: 0 0 14px rgba(124,92,255,.5); }
+.seg button:disabled { opacity: .45; }
+.who { display: grid; justify-items: center; gap: 8px; padding: 0 0 20px; }
+#orb-profile { width: 120px; height: 120px; }
+.who h3 { margin: 0; font-weight: 400; font-size: 24px; display: flex; align-items: center; gap: 8px; }
+.who p { margin: 0; color: var(--muted); font-size: 13.5px; }
+.badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 6px; background: rgba(124,92,255,.22); color: #d9d3ff; }
 
-/* ----- phone menu, sheet, toast ----- */
+/* ----- scrim, sheet, palette, toast ----- */
 #scrim { position: absolute; inset: 0; background: rgba(0,0,0,.55); opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 20; }
 #scrim.show { opacity: 1; pointer-events: auto; }
-#menu { position: absolute; top: 0; bottom: 0; left: 0; width: 82%; max-width: 330px; z-index: 21; padding: 30px 20px 24px; background: linear-gradient(180deg, #0b0c14, #07080d); border-right: 1px solid var(--line); transform: translateX(-102%); transition: transform .28s ease; display: flex; flex-direction: column; }
-#menu.show { transform: none; }
-#orb-menu { width: 76px; height: 76px; margin-left: 6px; }
-#menu h3 { font-weight: 400; font-size: 23px; margin: 14px 0 4px; }
-#menu > p { margin: 0 0 22px; color: var(--muted); font-size: 14.5px; }
-.menu-row { display: grid; grid-template-columns: 24px 1fr 18px; align-items: center; gap: 14px; height: 52px; padding: 0 8px; border-top: 1px solid var(--line); text-align: left; font-size: 15px; }
-.menu-row:last-of-type { border-bottom: 1px solid var(--line); }
-.menu-row .chev { color: var(--muted); }
-.model-card { margin-top: 22px; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--line); background: var(--card); }
-.model-card b { display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 14px; }
-.model-card b i { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
-.model-card span { display: block; margin-top: 6px; color: var(--muted); font-size: 12.5px; line-height: 1.45; }
-.quit { margin-top: auto; display: flex; align-items: center; gap: 14px; height: 48px; padding: 0 8px; font-size: 15px; }
-
-#sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 31; max-height: 82%; display: flex; flex-direction: column; padding: 10px 22px 22px; border-radius: 22px 22px 0 0; background: #0c0d15; border-top: 1px solid var(--line-hi); transform: translateY(102%); transition: transform .28s ease; }
-#sheet.show { transform: none; }
-@media (min-width: 900px) { #sheet { left: 50%; right: auto; width: 640px; margin-left: -320px; top: 50%; bottom: auto; max-height: 80%; border-radius: 22px; border: 1px solid var(--line-hi); transform: translateY(-46%) scale(.98); opacity: 0; pointer-events: none; transition: transform .22s ease, opacity .22s ease; } #sheet.show { transform: translateY(-50%); opacity: 1; pointer-events: auto; } #sheet .grab { display: none; } }
-#sheet .grab { width: 40px; height: 4px; border-radius: 4px; background: #2c2d39; margin: 0 auto 12px; }
-#sheet h4 { margin: 6px 0 12px; font-weight: 500; font-size: 17px; display: flex; justify-content: space-between; align-items: center; }
+#sheet { position: absolute; left: 50%; top: 50%; width: min(640px, 94vw); max-height: 82%; z-index: 31; display: flex; flex-direction: column; padding: 16px 22px 22px; border-radius: 20px; background: #0c0d17; border: 1px solid var(--line-hi); box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 40px rgba(124,92,255,.12); transform: translate(-50%, -46%) scale(.98); opacity: 0; pointer-events: none; transition: transform .22s ease, opacity .22s ease; }
+#sheet.show { transform: translate(-50%, -50%); opacity: 1; pointer-events: auto; }
+#sheet h4 { margin: 0 0 12px; font-weight: 500; font-size: 17px; display: flex; justify-content: space-between; align-items: center; }
 #sheet .body { overflow-y: auto; min-height: 0; user-select: text; }
 #sheet .body p { color: var(--muted); font-size: 14px; line-height: 1.5; margin: 0 0 10px; }
-.proj, .task-row { width: 100%; display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 12px 14px; margin-bottom: 8px; border-radius: 14px; border: 1px solid var(--line); background: var(--card); text-align: left; }
-.proj b, .task-row b { font-weight: 500; }
-.proj span, .task-row span { grid-column: 1 / 3; color: var(--muted); font-size: 12px; word-break: break-word; }
-.task-row em { font-style: normal; font-size: 12px; color: var(--muted); }
-.task-row em.succeeded { color: var(--good); } .task-row em.failed { color: var(--bad); } .task-row em.running, .task-row em.queued { color: var(--accent); }
-.path-row { display: flex; gap: 8px; margin: 6px 0 4px; }
-.path-row input { flex: 1; min-width: 0; height: 40px; border-radius: 12px; border: 1px solid var(--line-hi); background: #08090f; color: var(--text); padding: 0 12px; font: inherit; font-size: 13.5px; user-select: text; }
 .events { margin: 8px 0 0; padding: 0; list-style: none; font-size: 12.5px; color: var(--muted); }
 .events li { padding: 3px 0; }
 .mail-view { white-space: pre-wrap; font-size: 14px; line-height: 1.5; color: var(--text); background: #0b0d14; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
 .mail-head { color: var(--muted); font-size: 13px; margin: 0 0 4px; }
+#palette { position: fixed; inset: 0; display: none; place-items: start center; z-index: 60; background: rgba(4,5,9,.55); backdrop-filter: blur(3px); padding-top: 14vh; }
+#palette.show { display: grid; }
+#palette .box { width: min(560px, 92vw); border-radius: 16px; border: 1px solid var(--line-hi); background: #0d0e16; box-shadow: 0 24px 60px rgba(0,0,0,.5), 0 0 40px rgba(124,92,255,.15); overflow: hidden; }
+#palette input { width: 100%; height: 48px; padding: 0 16px; background: none; border: 0; outline: none; color: var(--text); font: inherit; font-size: 15px; border-bottom: 1px solid var(--line); user-select: text; }
+#palette .items { max-height: 320px; overflow-y: auto; padding: 6px; }
+#palette button.item { width: 100%; display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 10px; text-align: left; font-size: 14px; }
+#palette button.item:hover, #palette button.item.on { background: var(--card-hi); }
+#palette button.item small { margin-left: auto; color: var(--faint); font-size: 11.5px; }
 #toast { position: absolute; top: 16px; left: 50%; transform: translate(-50%, -160%); z-index: 40; max-width: 88%; padding: 10px 16px; border-radius: 14px; background: #171824; border: 1px solid var(--line-hi); font-size: 13.5px; line-height: 1.4; color: var(--text); box-shadow: 0 10px 30px rgba(0,0,0,.5); transition: transform .3s ease, visibility .3s; visibility: hidden; }
 #toast.show { transform: translate(-50%, 0); visibility: visible; }
 @media (prefers-reduced-motion: reduce) { .screen.active { animation: none; } }
+
+/* ----- additions: memory "right now" cards, settings segments, head wrapping, narrow window ----- */
+.mem-card { width: 100%; display: grid; grid-template-columns: 42px 1fr 20px; align-items: center; gap: 12px; padding: 13px 14px 13px 12px; margin-bottom: 10px; text-align: left; }
+.mem-card:hover { border-color: rgba(124,92,255,.5); }
+.mem-card .ic { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: rgba(124,92,255,.14); border: 1px solid rgba(124,92,255,.3); color: #c4b5fd; }
+.mem-card b { display: block; font-weight: 500; font-size: 14.5px; }
+.mem-card span span { display: block; color: var(--muted); font-size: 12.5px; line-height: 1.4; margin-top: 2px; }
+.mem-card .chev { color: var(--muted); }
+.mem .pill { height: 20px; font-size: 10.5px; padding: 0 8px; }
+.page-head { flex-wrap: wrap; }
+.page-head .search { margin-bottom: 0; width: 260px; }
+.set .seg { padding: 0; }
+.set .seg button { width: 62px; padding: 8px 0; }
+.set .seg .swatch { width: 52px; height: 32px; }
+.btn-add:hover { filter: brightness(1.1); }
+.pill.purple:hover, button.pill:hover { filter: brightness(1.15); cursor: pointer; }
+.goal .bar { margin-bottom: 2px; }
+.goal .acts:empty { display: none; }
+#home .home-grid { padding-bottom: 0; }
+@media (max-width: 1119px) { .home-side { display: none; } }
+@media (max-width: 600px) {
+  .changes .row { flex-wrap: wrap; }
+  .changes .acts { width: 100%; justify-content: flex-end; margin-top: 8px; }
+  .changes strong, .changes small { max-width: 100%; white-space: normal; }
+  .screen { padding-top: 44px; }
+  .page-head h2 { font-size: 24px; }
+  .page-head .search { width: 100%; }
+  .proj { grid-template-columns: 36px 1fr auto; }
+  .proj .more { display: none; }
+  .goal { grid-template-columns: 1fr auto; }
+  .goal .gic { display: none; }
+  .goal p, .goal small, .goal .bar { grid-column: 1 / 3; }
+  .set .seg button { width: 48px; }
+  .set .seg .swatch { width: 40px; height: 26px; }
+  .tool-grid { grid-template-columns: 1fr 1fr; }
+  .desk-greet h1 { font-size: 26px; }
+  .desk-greet p { font-size: 14px; }
+  .ask { min-height: 56px; padding: 6px; }
+  .round { width: 40px; height: 40px; }
+}
+@media (max-width: 420px) { .tool-grid { grid-template-columns: 1fr; } .mem .acts { grid-row: auto; grid-column: 1 / 3; } }
 </style>
 </head>
 <body>
 <div class="app">
 
-<!-- sidebar (wide window) -->
+<!-- sidebar -->
 <aside id="sidebar" aria-label="Navigation">
   <div class="brand"><canvas id="orb-brand"></canvas><div><b>Veronica</b><small>Your intelligent companion</small></div></div>
   <nav class="side-nav">
-    <button data-go="home" class="on"><svg viewBox="0 0 24 24"><path d="M20 12a7.5 7.5 0 0 1-11 6.6L4 20l1.4-4.6A7.5 7.5 0 1 1 20 12z"/></svg>Chat</button>
-    <button data-go="tools"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/></svg>Tools</button>
-    <button data-go="memory"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.6-3 8.3-7 10-4-1.7-7-5.4-7-10V6z"/></svg>Memory</button>
-    <button data-go="projects"><svg viewBox="0 0 24 24"><path d="M12 3 3 8l9 5 9-5zM3 13l9 5 9-5"/></svg>Projects</button>
-    <button data-go="goals"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>Goals<span class="count" id="goals-count"></span></button>
-    <button data-go="pc"><svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M9 20h6M12 16.5V20"/></svg>Hands</button>
-    <button data-act="research"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>Research</button>
-    <div style="height:14px"></div>
-    <button data-go="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14.2 3h-4.4l-.4 2.6a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 2 1.2l.4 2.6h4.4l.4-2.6a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg>Settings</button>
+    <button data-go="home" class="on" title="Chat"><svg viewBox="0 0 24 24"><path d="M20 12a7.5 7.5 0 0 1-11 6.6L4 20l1.4-4.6A7.5 7.5 0 1 1 20 12z"/></svg><span class="side-label">Chat</span></button>
+    <button data-go="tools" title="Tools"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/></svg><span class="side-label">Tools</span></button>
+    <button data-go="projects" title="Projects"><svg viewBox="0 0 24 24"><path d="M12 3 3 8l9 5 9-5zM3 13l9 5 9-5"/></svg><span class="side-label">Projects</span></button>
+    <button data-go="goals" title="Goals"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg><span class="side-label">Goals</span><span class="count" id="goals-count"></span></button>
+    <button data-go="memory" title="Memory"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.6-3 8.3-7 10-4-1.7-7-5.4-7-10V6z"/></svg><span class="side-label">Memory</span></button>
+    <button data-go="research" title="Research"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg><span class="side-label">Research</span></button>
+    <button data-go="pc" title="Hands"><svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M9 20h6M12 16.5V20"/></svg><span class="side-label">Hands</span></button>
   </nav>
   <div class="side-gap"></div>
-  <button class="side-card" data-go="profile"><span class="avatar">V</span><span><b>Veronica</b><small id="side-status">Claude Sonnet 5.5</small></span></button>
+  <nav class="side-nav">
+    <button data-go="profile" title="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14.2 3h-4.4l-.4 2.6a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 2 1.2l.4 2.6h4.4l.4-2.6a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg><span class="side-label">Settings</span></button>
+  </nav>
+  <button class="side-card" data-go="profile" title="Veronica"><span class="avatar">V</span><span class="who-text"><b>Veronica</b><small><i></i><span id="side-status">Starting…</span></small></span></button>
 </aside>
 
 <main id="main">
+
+<div id="topbar">
+  <button id="top-search" aria-label="Commands (Ctrl+K)" title="Commands (Ctrl+K)"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg></button>
+  <button id="top-bell" data-go="goals" aria-label="Waiting for you" title="Goals and proposals waiting for you"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20a2 2 0 0 0 4 0"/></svg><span class="dot" id="bell-dot"></span></button>
+</div>
 
 <!-- splash -->
 <section class="screen active" id="splash" aria-label="Starting">
@@ -344,44 +451,46 @@ pre.code .add { color: #86efac; } pre.code .del { color: #fda4af; } pre.code .hu
   <div class="bar"></div>
 </section>
 
-<!-- home -->
+<!-- home / chat -->
 <section class="screen" id="home" aria-label="Chat">
-  <div class="top phone-only">
-    <button class="icon-btn" id="open-menu" aria-label="Menu"><span class="dots4"><i></i><i></i><i></i><i></i></span></button>
-    <button class="icon-btn ring" data-go="profile" aria-label="Profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.9-3.6 3.7-5.4 7-5.4s6.1 1.8 7 5.4"/></svg></button>
-  </div>
-  <div class="home-main" id="home-main">
-    <div id="hero">
-      <div class="greet"><h1>Hey,<br>I’m <em>Veronica.</em></h1><p>I’m here to help you think clearer, move faster, and get more done.</p></div>
-      <div class="hero-orb"><canvas id="orb-hero" role="button" aria-label="Talk to Veronica" tabindex="0"></canvas></div>
-      <div class="desk-greet"><h1>Hey, I’m Veronica.</h1><p>How can I help you today?</p></div>
-      <div class="chips">
-        <button class="chip" data-chip="What's on my calendar today and this week?"><span class="ci" style="background:rgba(56,189,248,.16);color:#7dd3fc"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></span>Plan my day</button>
-        <button class="chip" data-chip="Any important unread emails?"><span class="ci" style="background:rgba(240,171,252,.16);color:#f5b8fb"><svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4 7l8 6 8-6"/></svg></span>Check my email</button>
-        <button class="chip" data-act="research"><span class="ci" style="background:rgba(143,125,255,.2);color:#c9c0ff"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg></span>Research a topic</button>
-        <button class="chip" data-chip="Find and fix the bug: "><span class="ci" style="background:rgba(110,231,183,.14);color:#86efac"><svg viewBox="0 0 24 24"><path d="M13 3 5 13.5h6L10 21l8-10.5h-6z"/></svg></span>Fix a bug</button>
-        <button class="chip" data-go="tools"><span class="ci" style="color:#cfd0dc"><svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg></span>More</button>
+  <div class="home-grid">
+    <div class="home-main" id="home-main">
+      <div id="hero">
+        <div class="hero-orb"><canvas id="orb-hero" role="button" aria-label="Talk to Veronica" tabindex="0"></canvas></div>
+        <div class="desk-greet"><h1>Hey, I’m Veronica.</h1><p>Always on your side.</p></div>
+        <div class="chips">
+          <button class="chip" data-chip="What's on my calendar today and this week? Help me plan my day."><span class="ci"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></span>Plan my day</button>
+          <button class="chip" data-act="research"><span class="ci"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg></span>Research a topic</button>
+          <button class="chip" data-act="projects"><span class="ci"><svg viewBox="0 0 24 24"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg></span>Create a project</button>
+          <button class="chip" data-chip="Find and fix the bug: "><span class="ci"><svg viewBox="0 0 24 24"><path d="M9 8l-4 4 4 4M15 8l4 4-4 4"/></svg></span>Fix a bug</button>
+          <button class="chip" data-go="tools"><span class="ci"><svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg></span>More</button>
+        </div>
       </div>
+      <div id="thread" aria-live="polite"></div>
+      <button class="project-pill" id="project-pill" aria-label="Choose a project"><span class="dot"></span><span id="project-label">No project open</span></button>
+      <div class="changes" id="changes"><div class="row"><div><strong id="changes-title"></strong><small id="changes-sub"></small></div><div class="acts"><button class="pill-btn" id="changes-view">View</button><button class="pill-btn" id="changes-undo">Undo</button><button class="pill-btn primary" id="changes-keep">Keep</button></div></div></div>
+      <div class="changes" id="draft"><div class="row"><div><strong id="draft-title"></strong><small id="draft-sub"></small></div><div class="acts"><button class="pill-btn" id="draft-view">View</button><button class="pill-btn" id="draft-discard">Discard</button><button class="pill-btn primary" id="draft-send">Send</button></div></div></div>
+      <div class="changes" id="pcbar"><div class="row"><div><strong>Veronica wants to use your PC</strong><small id="pcbar-words"></small></div><div class="acts"><button class="pill-btn danger" id="pcbar-deny">Deny</button><button class="pill-btn primary" id="pcbar-allow">Allow</button></div></div></div>
+      <div class="hands-off" id="hands-off"><svg viewBox="0 0 24 24"><path d="M18 11V6.5a1.5 1.5 0 0 0-3 0V11m0-4.5v-1a1.5 1.5 0 0 0-3 0V11m0-3.5v-2a1.5 1.5 0 0 0-3 0V12m0-2.5a1.5 1.5 0 0 0-3 0V15a6 6 0 0 0 6 6h1a6 6 0 0 0 6-6v-4a1.5 1.5 0 0 0-3 0"/></svg>Her hands are off — she will not click or type until you switch them on</div>
+      <form class="ask" id="ask" autocomplete="off">
+        <button type="button" class="round plus" id="ask-plus" aria-label="Open a project"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+        <textarea id="ask-input" rows="1" placeholder="Message Veronica…" aria-label="Message Veronica"></textarea>
+        <button type="button" class="round wave" id="ask-voice" aria-label="Voice mode"><svg viewBox="0 0 24 24"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"/></svg></button>
+        <button type="submit" class="round send" id="ask-send" aria-label="Send"><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button>
+      </form>
     </div>
-    <div id="thread" aria-live="polite"></div>
-    <button class="project-pill" id="project-pill" aria-label="Choose a project"><span class="dot"></span><span id="project-label">No project open</span></button>
-    <div class="changes" id="changes"><div class="row"><div><strong id="changes-title"></strong><small id="changes-sub"></small></div><div class="acts"><button class="pill-btn" id="changes-view">View</button><button class="pill-btn" id="changes-undo">Undo</button><button class="pill-btn primary" id="changes-keep">Keep</button></div></div></div>
-    <div class="changes" id="draft"><div class="row"><div><strong id="draft-title"></strong><small id="draft-sub"></small></div><div class="acts"><button class="pill-btn" id="draft-view">View</button><button class="pill-btn" id="draft-discard">Discard</button><button class="pill-btn primary" id="draft-send">Send</button></div></div></div>
-    <div class="changes" id="pcbar"><div class="row"><div><strong>Veronica wants to use your PC</strong><small id="pcbar-words"></small></div><div class="acts"><button class="pill-btn danger" id="pcbar-deny">Deny</button><button class="pill-btn primary" id="pcbar-allow">Allow</button></div></div></div>
-    <div class="hands-off" id="hands-off"><svg viewBox="0 0 24 24"><path d="M18 11V6.5a1.5 1.5 0 0 0-3 0V11m0-4.5v-1a1.5 1.5 0 0 0-3 0V11m0-3.5v-2a1.5 1.5 0 0 0-3 0V12m0-2.5a1.5 1.5 0 0 0-3 0V15a6 6 0 0 0 6 6h1a6 6 0 0 0 6-6v-4a1.5 1.5 0 0 0-3 0"/></svg>Her hands are off — she will not click or type until you switch them on</div>
-    <form class="ask" id="ask" autocomplete="off">
-      <button type="button" class="round" id="ask-plus" aria-label="Open a project"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
-      <textarea id="ask-input" rows="1" placeholder="Message Veronica..." aria-label="Message Veronica"></textarea>
-      <button type="button" class="round wave" id="ask-voice" aria-label="Voice mode"><svg viewBox="0 0 24 24"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"/></svg></button>
-      <button type="submit" class="round send" id="ask-send" aria-label="Send"><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button>
-    </form>
+    <aside class="home-side" aria-label="Today">
+      <div class="glass side-box clock-box"><div><small id="clock-date">—</small><b id="clock-time">—</b></div><span class="globe" aria-hidden="true"></span></div>
+      <button class="glass side-box focus-box" id="focus-row" aria-pressed="false"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"/></svg></span><span><b>Focus Mode</b><small id="focus-sub">Off · she listens for her name</small></span><span class="switch" id="focus-switch"></span></button>
+      <div class="glass side-box"><h5>Current Tasks <button data-go="research">See all</button></h5><div id="recent"></div></div>
+      <div class="glass side-box"><h5>System Status <button id="refresh-btn" aria-label="Refresh" title="Refresh"><svg viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v4h-4"/></svg></button></h5>
+        <div class="status-row"><span class="ic"><svg viewBox="0 0 24 24"><path d="M5 12l4 4L19 6"/></svg></span>Online<em id="st-online">starting…</em></div>
+        <div class="status-row"><span class="ic purple"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.6-3 8.3-7 10-4-1.7-7-5.4-7-10V6z"/></svg></span>Memory<em id="st-memory">—</em></div>
+        <div class="status-row"><span class="ic blue"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/></svg></span>Tools<em id="st-tools">—</em></div>
+        <div class="status-row"><span class="ic gold"><svg viewBox="0 0 24 24"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg></span>Autonomous<em id="st-auto">—</em></div>
+      </div>
+    </aside>
   </div>
-  <nav class="nav phone-only">
-    <button class="on" data-go="home"><span class="home-dot"></span>Home</button>
-    <button data-go="tools"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/></svg>Tools</button>
-    <button data-go="memory"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v4h-4"/></svg>Memory</button>
-    <button data-go="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.9-3.6 3.7-5.4 7-5.4s6.1 1.8 7 5.4"/></svg>Profile</button>
-  </nav>
 </section>
 
 <!-- voice mode -->
@@ -397,33 +506,21 @@ pre.code .add { color: #86efac; } pre.code .del { color: #fda4af; } pre.code .hu
 <!-- tools -->
 <section class="screen" id="tools" aria-label="Tools">
   <div class="page">
-    <div class="page-head"><button class="icon-btn back" data-go="home" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h2>Tools</h2><p>Give Veronica the right tools for the job.</p></div>
-    <label class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg><input id="tool-search" placeholder="Search tools..." aria-label="Search tools"></label>
-    <div class="tabs" id="tool-tabs"><button class="on" data-tab="all">All</button><button data-tab="work">Code</button><button data-tab="life">Email &amp; Calendar</button><button data-tab="research">Research</button></div>
-    <div class="cards" id="tool-cards">
-      <button class="card" data-act="research" data-kind="research"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg></span><span><b>Research Mode</b><span>Deep, structured research with sources, in the background.</span></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
-      <button class="card" data-expand data-kind="research"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.5 3.5 5.3 3.5 8.5s-1.1 6-3.5 8.5c-2.4-2.5-3.5-5.3-3.5-8.5s1.1-6 3.5-8.5z"/></svg></span><span><b>Web Search</b><span>Find current information on the web (Brave Search).</span></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg><span class="detail">Used by research tasks. Pages are read as plain text; nothing on this PC or your home network is ever fetched.</span></button>
-      <button class="card" data-act="projects" data-kind="work"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg></span><span><b>Projects</b><span>Open a folder for Veronica to work in.</span></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
-      <button class="card" data-expand data-kind="work"><span class="ic"><svg viewBox="0 0 24 24"><path d="M9 8l-4 4 4 4M15 8l4 4-4 4"/></svg></span><span><b>Code Reader &amp; Editor</b><span>Read, search and change your code, in your style.</span></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg><span class="detail">Works inside the open project only. Every change waits for you to keep or undo; secret files are never opened.</span></button>
-      <button class="card" data-expand data-kind="work"><span class="ic"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"/></svg></span><span><b>Test Runner</b><span>Checks every change with the project's own tests.</span></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg><span class="detail">Veronica's program runs the tests itself. Failing changes go back for fixing twice, then are undone.</span></button>
-      <button class="card" data-expand data-kind="life"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4 7l8 6 8-6"/></svg></span><span><b>Email</b><span>Search and read your Gmail; draft replies.</span></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg><span class="detail">Nothing is marked as read. Veronica only drafts: an email is sent when you press Send or say “send it”, and never twice.</span></button>
-      <button class="card" data-expand data-kind="life"><span class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></span><span><b>Calendar</b><span>What's coming up in your Google Calendar.</span></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg><span class="detail">Read only: Veronica can tell you your schedule but cannot add or change events.</span></button>
-      <button class="card" data-expand data-kind="life"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"/></svg></span><span><b>Voice</b><span>Talk to Veronica and hear the answer.</span></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg><span class="detail">Your speech is understood on this PC, never recorded. Replies are spoken by <span id="voice-provider" style="display:inline;margin:0">Fish Audio</span>.</span></button>
-    </div>
-  </div>
-</section>
-
-<!-- memory -->
-<section class="screen" id="memory" aria-label="Memory">
-  <div class="page">
-    <div class="page-head"><button class="icon-btn back" data-go="home" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h2>Memory</h2><p>Veronica remembers what matters to you: only what you tell her, and you can change or delete it.</p></div>
-    <div class="tabs" id="mem-tabs"><button class="on" data-tab="all">All</button><button data-tab="preference">Preferences</button><button data-tab="fact">Facts</button></div>
-    <div class="cards">
-      <div id="mem-list"></div>
-      <div class="section-title">Right now</div>
-      <button class="card" data-act="conversation"><span class="ic"><svg viewBox="0 0 24 24"><path d="M20 12a7.5 7.5 0 0 1-11 6.6L4 20l1.4-4.6A7.5 7.5 0 1 1 20 12z"/></svg></span><span><b>This Conversation</b><span id="mem-chat">Nothing said yet.</span></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
-      <button class="card" data-act="changes"><span class="ic"><svg viewBox="0 0 24 24"><path d="M8 5v9M4.5 9.5h7M13 17h7"/></svg></span><span><b>Waiting Changes</b><span id="mem-changes">No changes waiting.</span></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
-      <button class="card" data-act="new"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span><b>Start Fresh</b><span>A new conversation. Your memories, project and changes stay.</span></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+    <div class="page-head"><div><h2>Tools</h2><p>Give Veronica the right tools for the job.</p></div><div class="head-tools"><label class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg><input id="tool-search" placeholder="Search tools…" aria-label="Search tools"></label></div></div>
+    <div class="tabs" id="tool-tabs"><button class="on" data-tab="all">All</button><button data-tab="code">Code</button><button data-tab="research">Research</button><button data-tab="life">Email &amp; Calendar</button><button data-tab="system">System</button><button data-tab="media">Media</button><button data-tab="custom">Custom</button></div>
+    <div class="tool-grid" id="tool-cards">
+      <button class="glass tool" data-act="research" data-kind="research"><span class="ic"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"/></svg></span><b>Research Mode</b><span>Deep research with sources</span><svg class="chev" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      <button class="glass tool" data-prompt="Search the web for: " data-kind="research"><span class="ic blue"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.5 3.5 5.3 3.5 8.5s-1.1 6-3.5 8.5c-2.4-2.5-3.5-5.3-3.5-8.5s1.1-6 3.5-8.5z"/></svg></span><b>Web Search</b><span>Find current information</span><svg class="chev" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      <button class="glass tool" data-act="projects" data-kind="code"><span class="ic pink"><svg viewBox="0 0 24 24"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg></span><b>Projects</b><span>Open project folders</span><svg class="chev" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      <button class="glass tool" data-prompt="Read and explain the code in: " data-kind="code"><span class="ic cyan"><svg viewBox="0 0 24 24"><path d="M9 8l-4 4 4 4M15 8l4 4-4 4"/></svg></span><b>Code Reader &amp; Editor</b><span>Read, search and edit code</span><svg class="chev" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      <button class="glass tool" data-prompt="Run the project's tests and tell me what fails." data-kind="code"><span class="ic"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3M8 15h8"/></svg></span><b>Test Runner</b><span>Run and analyse tests</span><svg class="chev" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      <button class="glass tool" data-prompt="Any important unread emails?" data-kind="life"><span class="ic blue"><svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4 7l8 6 8-6"/></svg></span><b>Email</b><span>Search and draft emails</span><svg class="chev" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      <button class="glass tool" data-prompt="What's on my calendar today and this week?" data-kind="life"><span class="ic pink"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></span><b>Calendar</b><span>Manage your schedule</span><svg class="chev" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      <button class="glass tool" data-act="voice" data-kind="media"><span class="ic cyan"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></span><b>Voice</b><span>Talk to Veronica</span><svg class="chev" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      <button class="glass tool" data-prompt="List the files in the project and tell me what each one does." data-kind="system"><span class="ic pink"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 4.5V10M8 14h8"/></svg></span><b>File Manager</b><span>Browse and manage files</span><svg class="chev" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      <button class="glass tool" data-prompt="Run this command and show me the output: " data-kind="system code"><span class="ic blue"><svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="2"/><path d="M7 9l3 3-3 3M12 15h5"/></svg></span><b>Terminal</b><span>Run commands safely</span><svg class="chev" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      <button class="glass tool" data-prompt="Open this web page and tell me what it says: " data-kind="research system"><span class="ic cyan"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.5 3.5 5.3 3.5 8.5s-1.1 6-3.5 8.5c-2.4-2.5-3.5-5.3-3.5-8.5s1.1-6 3.5-8.5z"/></svg></span><b>Browser</b><span>Open and read web pages</span><svg class="chev" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      <button class="glass tool" data-prompt="Propose a new tool for yourself that would help me with: " data-kind="custom"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14.2 3h-4.4l-.4 2.6a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 2 1.2l.4 2.6h4.4l.4-2.6a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg></span><b>Custom Tools</b><span>Ask her to propose new tools</span><svg class="chev" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
     </div>
   </div>
 </section>
@@ -431,99 +528,114 @@ pre.code .add { color: #86efac; } pre.code .del { color: #fda4af; } pre.code .hu
 <!-- projects -->
 <section class="screen" id="projects" aria-label="Projects">
   <div class="page">
-    <div class="page-head"><button class="icon-btn back" data-go="home" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h2>Projects</h2><p>The folder Veronica works in, and your saved projects.</p></div>
+    <div class="page-head"><div><h2>Projects</h2><p>The folder Veronica works in, and your saved projects.</p></div><div class="head-tools"><button class="btn-add" id="project-new"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New Project</button></div></div>
+    <div class="tabs" id="proj-tabs"><button class="on" data-tab="all">All</button><button data-tab="open">Open now</button></div>
     <div class="scroll" id="projects-body"></div>
-  </div>
-</section>
-
-<!-- her hands on this PC -->
-<section class="screen" id="pc" aria-label="Her hands">
-  <div class="page scroll">
-    <div class="page-head"><button class="icon-btn back" data-go="home" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h2>Her hands</h2><p>What Veronica may do on this PC: see the screen, click, type, open and close windows, volume and media. While you are here she asks before each action.</p></div>
-    <div class="settings">
-      <button class="set" id="hands-row" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M18 11V6.5a1.5 1.5 0 0 0-3 0V11m0-4.5v-1a1.5 1.5 0 0 0-3 0V11m0-3.5v-2a1.5 1.5 0 0 0-3 0V12m0-2.5a1.5 1.5 0 0 0-3 0V15a6 6 0 0 0 6 6h1a6 6 0 0 0 6-6v-4a1.5 1.5 0 0 0-3 0"/></svg>Her hands<span class="switch on" id="hands-switch"></span></button>
-      <button class="set" id="hands-beat-row" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg>Use them while you are away<span class="switch on" id="hands-beat-switch"></span></button>
-      <button class="set" id="pc-look"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/></svg>Ask her to look at the screen<em><svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M9 6l6 6-6 6"/></svg></em></button>
-    </div>
-    <div class="section-title">Waiting for your yes</div><div id="pc-waiting"></div>
-    <div class="section-title">What her hands did</div><div id="pc-log"></div>
   </div>
 </section>
 
 <!-- goals and proposals: she proposes, you approve -->
 <section class="screen" id="goals" aria-label="Goals">
-  <div class="page scroll">
-    <div class="page-head"><button class="icon-btn back" data-go="home" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h2>Goals</h2><p>What Veronica works on by herself. Nothing she suggests starts until you approve it.</p></div>
-    <div class="path-row"><input id="goal-input" placeholder="Give Veronica a goal…" aria-label="New goal" maxlength="200"><button class="pill-btn primary" id="goal-add">Add</button></div>
-    <div class="section-title">Waiting for you</div><div id="goals-waiting"></div>
-    <div class="section-title">Approved work</div><div id="goals-work"></div>
-    <div class="section-title">Goals</div><div id="goals-active"></div>
-    <div class="section-title">Heartbeat</div>
-    <div class="settings" id="beat-box">
-      <button class="set" id="beat-row" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg>Work on her own<span class="switch on" id="beat-switch"></span></button>
-      <div class="set"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg>Every<em><select id="beat-minutes" aria-label="How often"><option value="15">15 minutes</option><option value="30">30 minutes</option><option value="60">hour</option><option value="180">3 hours</option><option value="360">6 hours</option><option value="1440">day</option></select></em></div>
-      <button class="set" id="hands-beat-row2" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M18 11V6.5a1.5 1.5 0 0 0-3 0V11m0-4.5v-1a1.5 1.5 0 0 0-3 0V11m0-3.5v-2a1.5 1.5 0 0 0-3 0V12m0-2.5a1.5 1.5 0 0 0-3 0V15a6 6 0 0 0 6 6h1a6 6 0 0 0 6-6v-4a1.5 1.5 0 0 0-3 0"/></svg>Hands while you are away<span class="switch on" id="hands-beat-switch2"></span></button>
-      <button class="set" id="review-row" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg>Daily ideas for you<span class="switch on" id="review-switch"></span></button>
-      <button class="set" id="beat-go"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span id="beat-line">Run a heartbeat now</span><em id="beat-when"></em></button>
+  <div class="page">
+    <div class="page-head"><div><h2>Goals</h2><p>What Veronica works on by herself. Nothing she suggests starts until you approve it.</p></div><div class="head-tools"><button class="btn-add" id="goal-new"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add Goal</button></div></div>
+    <div class="tabs" id="goal-tabs"><button class="on" data-tab="all">All</button><button data-tab="active">Active</button><button data-tab="completed">Completed</button><button data-tab="archived">Archived</button></div>
+    <div class="scroll">
+      <div class="path-row" id="goal-row" style="display:none"><input id="goal-input" placeholder="Give Veronica a goal…" aria-label="New goal" maxlength="200"><button class="pill-btn primary" id="goal-add">Add</button></div>
+      <div class="goal-group" data-group="active"><div class="section-title">Waiting for you</div><div id="goals-waiting"></div></div>
+      <div class="goal-group" data-group="active"><div class="section-title">Approved work</div><div id="goals-work"></div></div>
+      <div class="goal-group" data-group="active"><div class="section-title">Goals</div><div id="goals-active"></div></div>
+      <div class="goal-group" data-group="completed archived"><div class="section-title">Finished</div><div id="goals-finished"></div></div>
+      <div class="goal-group" data-group="active"><div class="section-title">Heartbeat</div>
+      <div class="glass settings" id="beat-box">
+        <button class="set" id="beat-row" aria-pressed="true"><span class="sic"><svg viewBox="0 0 24 24"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg></span>Work on her own<span class="switch on" id="beat-switch"></span></button>
+        <div class="set"><span class="sic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg></span>Every<em><select id="beat-minutes" aria-label="How often"><option value="15">15 minutes</option><option value="30">30 minutes</option><option value="60">hour</option><option value="180">3 hours</option><option value="360">6 hours</option><option value="1440">day</option></select></em></div>
+        <button class="set" id="hands-beat-row2" aria-pressed="true"><span class="sic"><svg viewBox="0 0 24 24"><path d="M18 11V6.5a1.5 1.5 0 0 0-3 0V11m0-4.5v-1a1.5 1.5 0 0 0-3 0V11m0-3.5v-2a1.5 1.5 0 0 0-3 0V12m0-2.5a1.5 1.5 0 0 0-3 0V15a6 6 0 0 0 6 6h1a6 6 0 0 0 6-6v-4a1.5 1.5 0 0 0-3 0"/></svg></span>Hands while you are away<span class="switch on" id="hands-beat-switch2"></span></button>
+        <button class="set" id="review-row" aria-pressed="true"><span class="sic"><svg viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg></span>Daily ideas for you<span class="switch on" id="review-switch"></span></button>
+        <button class="set" id="beat-go"><span class="sic"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span><span id="beat-line">Run a heartbeat now</span><em id="beat-when"></em></button>
+      </div>
+      <div id="beat-recent"></div></div>
     </div>
-    <div id="beat-recent"></div>
-    <div class="section-title">Finished</div><div id="goals-finished"></div>
   </div>
 </section>
 
-<!-- profile / settings -->
-<section class="screen" id="profile" aria-label="Settings">
-  <div class="page scroll">
-    <div class="page-head"><button class="icon-btn back" data-go="home" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h2>Profile</h2><p>Manage your Veronica experience.</p></div>
-    <div class="who"><canvas id="orb-profile"></canvas><h3>Veronica <span class="badge">Opus 5.5</span></h3><p>Always on your side.</p></div>
-    <div class="settings">
-      <div class="set"><svg viewBox="0 0 24 24"><path d="M12 3l9 9-9 9-9-9z"/></svg>Appearance<em>Dark</em></div>
-      <div class="set"><svg viewBox="0 0 24 24"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"/></svg>Voice<em id="voice-name">Fish Audio</em></div>
-      <button class="set" id="listen-row" aria-pressed="true"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>Listen for “Veronica”<span class="switch on" id="listen-switch"></span></button>
-      <div class="set"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.5 3.5 5.3 3.5 8.5s-1.1 6-3.5 8.5c-2.4-2.5-3.5-5.3-3.5-8.5s1.1-6 3.5-8.5z"/></svg>Language<em>English</em></div>
+<!-- memory -->
+<section class="screen" id="memory" aria-label="Memory">
+  <div class="page">
+    <div class="page-head"><div><h2>Memory</h2><p>Veronica remembers what matters to you.</p></div></div>
+    <div class="tabs" id="mem-tabs"><button class="on" data-tab="all">All</button><button data-tab="preference">Preferences</button><button data-tab="fact">Facts</button><button data-tab="conversation">Conversations</button></div>
+    <div class="scroll">
+      <div id="mem-list"></div>
+      <div id="mem-now">
+        <div class="section-title">Right now</div>
+        <button class="glass mem-card" data-act="conversation"><span class="ic"><svg viewBox="0 0 24 24"><path d="M20 12a7.5 7.5 0 0 1-11 6.6L4 20l1.4-4.6A7.5 7.5 0 1 1 20 12z"/></svg></span><span><b>This Conversation</b><span id="mem-chat">Nothing said yet.</span></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+        <button class="glass mem-card" data-act="changes"><span class="ic"><svg viewBox="0 0 24 24"><path d="M8 5v9M4.5 9.5h7M13 17h7"/></svg></span><span><b>Waiting Changes</b><span id="mem-changes">No changes waiting.</span></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+        <button class="glass mem-card" data-act="new"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span><b>Start Fresh</b><span>A new conversation. Your memories, project and changes stay.</span></span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+      </div>
     </div>
-    <div class="settings">
-      <div class="set"><svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4 7l8 6 8-6"/></svg>Gmail<em id="conn-gmail">…</em></div>
-      <div class="set"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Google Calendar<em id="conn-calendar">…</em></div>
-      <div class="set"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>Web search<em id="conn-search">…</em></div>
-      <button class="set" id="about-row"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/></svg>About<em><svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M9 6l6 6-6 6"/></svg></em></button>
+  </div>
+</section>
+
+<!-- research -->
+<section class="screen" id="research" aria-label="Research">
+  <div class="page">
+    <div class="page-head"><div><h2>Research</h2><p>Veronica searches the web, reads sources and writes a report with citations, checked against the pages she read. It runs in the background, with limits on time and cost.</p></div></div>
+    <div class="path-row"><input id="topic-input" placeholder="What should Veronica research?" aria-label="Research topic"><button class="pill-btn primary" id="topic-go">Start</button></div>
+    <div class="tabs" id="task-tabs"><button class="on" data-tab="all">All</button><button data-tab="running">Running</button><button data-tab="succeeded">Done</button><button data-tab="failed">Stopped</button></div>
+    <div class="scroll" id="research-list"></div>
+  </div>
+</section>
+
+<!-- her hands on this PC -->
+<section class="screen" id="pc" aria-label="Her hands">
+  <div class="page">
+    <div class="page-head"><div><h2>Hands</h2><p>What Veronica may do on this PC: see the screen, click, type, open and close windows, volume and media. While you are here she asks before each action.</p></div></div>
+    <div class="scroll">
+      <div class="glass settings">
+        <button class="set" id="hands-row" aria-pressed="true"><span class="sic"><svg viewBox="0 0 24 24"><path d="M18 11V6.5a1.5 1.5 0 0 0-3 0V11m0-4.5v-1a1.5 1.5 0 0 0-3 0V11m0-3.5v-2a1.5 1.5 0 0 0-3 0V12m0-2.5a1.5 1.5 0 0 0-3 0V15a6 6 0 0 0 6 6h1a6 6 0 0 0 6-6v-4a1.5 1.5 0 0 0-3 0"/></svg></span>Her hands<span class="switch on" id="hands-switch"></span></button>
+        <button class="set" id="hands-beat-row" aria-pressed="true"><span class="sic"><svg viewBox="0 0 24 24"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg></span>Use them while you are away<span class="switch on" id="hands-beat-switch"></span></button>
+        <button class="set" id="pc-look"><span class="sic"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/></svg></span>Ask her to look at the screen<em><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></em></button>
+      </div>
+      <div class="section-title">Waiting for your yes</div><div id="pc-waiting"></div>
+      <div class="section-title">What her hands did</div><div id="pc-log"></div>
+    </div>
+  </div>
+</section>
+
+<!-- settings -->
+<section class="screen" id="profile" aria-label="Settings">
+  <div class="page">
+    <div class="page-head"><div><h2>Settings</h2><p>Customize Veronica to fit your workflow.</p></div></div>
+    <div class="scroll">
+      <div class="glass settings">
+        <div class="set"><span class="sic"><svg viewBox="0 0 24 24"><path d="M12 3l9 9-9 9-9-9z"/></svg></span>Appearance<span class="seg" role="radiogroup" aria-label="Appearance"><button disabled title="Not available yet"><span class="swatch sys"></span>System</button><button class="on" aria-checked="true"><span class="swatch"></span>Dark</button><button disabled title="Not available yet"><span class="swatch light"></span>Light</button></span></div>
+        <div class="set"><span class="sic"><svg viewBox="0 0 24 24"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"/></svg></span>Voice<em id="voice-name">…</em></div>
+        <button class="set" id="listen-row" aria-pressed="true"><span class="sic"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></span>Listen for “Veronica”<span class="switch on" id="listen-switch"></span></button>
+        <div class="set"><span class="sic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.5 3.5 5.3 3.5 8.5s-1.1 6-3.5 8.5c-2.4-2.5-3.5-5.3-3.5-8.5s1.1-6 3.5-8.5z"/></svg></span>Language<em>English</em></div>
+      </div>
+      <div class="glass settings">
+        <button class="set" id="accounts-row" aria-expanded="false"><span class="sic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.9-3.6 3.7-5.4 7-5.4s6.1 1.8 7 5.4"/></svg></span><span class="two">Connected Accounts<small id="accounts-sub">Gmail, Calendar, web search</small></span><em><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></em></button>
+        <div id="accounts-box" style="display:none">
+          <div class="set"><span class="sic"><svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4 7l8 6 8-6"/></svg></span>Gmail<em id="conn-gmail">…</em></div>
+          <div class="set"><span class="sic"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></span>Google Calendar<em id="conn-calendar">…</em></div>
+          <div class="set"><span class="sic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg></span>Web search<em id="conn-search">…</em></div>
+        </div>
+        <button class="set" id="about-row"><span class="sic"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.6-3 8.3-7 10-4-1.7-7-5.4-7-10V6z"/></svg></span><span class="two">Privacy &amp; Data<small>Memory, storage and what she can access</small></span><em><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></em></button>
+        <button class="set" data-go="goals"><span class="sic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14.2 3h-4.4l-.4 2.6a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 2 1.2l.4 2.6h4.4l.4-2.6a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg></span><span class="two">Advanced<small>Autonomous mode, her hands, heartbeat</small></span><em><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></em></button>
+      </div>
+      <div class="glass settings">
+        <button class="set" id="quit"><span class="sic"><svg viewBox="0 0 24 24"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 16l-4-4 4-4M6 12h10"/></svg></span>Quit Veronica<em id="about-version"></em></button>
+      </div>
     </div>
   </div>
 </section>
 
 </main>
-
-<!-- right rail (wide window) -->
-<aside id="rail" aria-label="Suggestions">
-  <div class="rail-box"><h5>Suggested for you</h5><div id="suggest"></div></div>
-  <div class="rail-box"><h5>Recent research <button data-act="research">See all</button></h5><div id="recent"><div class="empty-note">No research yet. Ask Veronica to research a topic, or use Research Mode.</div></div></div>
-</aside>
-
 </div>
 
-<!-- phone side menu -->
 <div id="scrim"></div>
-<aside id="menu" aria-label="Menu">
-  <canvas id="orb-menu"></canvas>
-  <h3>Veronica</h3>
-  <p>Always on your side.</p>
-  <button class="menu-row" data-menu="new"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New Chat<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
-  <button class="menu-row" data-menu="voice"><svg viewBox="0 0 24 24"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"/></svg>Voice Mode<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
-  <button class="menu-row" data-menu="research"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>Research<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
-  <button class="menu-row" data-menu="tools"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/></svg>Tools<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
-  <button class="menu-row" data-menu="memory"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/></svg>Memory<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
-  <button class="menu-row" data-menu="pc"><svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M9 20h6M12 16.5V20"/></svg>Her hands on this PC<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
-  <button class="menu-row" data-menu="goals"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/></svg>Goals &amp; proposals<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
-  <button class="menu-row" data-menu="projects"><svg viewBox="0 0 24 24"><path d="M12 3 3 8l9 5 9-5zM3 13l9 5 9-5"/></svg>Projects<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
-  <button class="menu-row" data-menu="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14.2 3h-4.4l-.4 2.6a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 2 1.2l.4 2.6h4.4l.4-2.6a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg>Settings<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
-  <div class="model-card"><b><i></i>Claude Sonnet 5.5</b><span>Through OpenRouter: Sonnet for chat and research, Opus 5.5 for coding, MiMo-V2.6-Flash for helpers. Speaks with Fish Audio.</span></div>
-  <button class="quit" id="quit"><svg viewBox="0 0 24 24"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 16l-4-4 4-4M6 12h10"/></svg>Quit Veronica</button>
-</aside>
-
 <div id="palette" role="dialog" aria-label="Commands"><div class="box"><input id="palette-input" placeholder="Type a command…" aria-label="Command"><div class="items" id="palette-items"></div></div></div>
-<div id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title"><div class="grab"></div><h4><span id="sheet-title"></span><button class="icon-btn" id="sheet-close" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h4><div class="body" id="sheet-body"></div></div>
+<div id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title"><h4><span id="sheet-title"></span><button class="icon-btn" id="sheet-close" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h4><div class="body" id="sheet-body"></div></div>
 <div id="toast" role="status"></div>
-
 <script>
 'use strict';
 const $ = (s, el = document) => el.querySelector(s);
@@ -532,12 +644,14 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '
 
 const S = {
   screen: 'splash', state: 'loading', level: 0, levelS: 0, amp: 0, ampS: 0,
-  voiceMode: false, paused: false, hearing: null, listenForName: true,
+  voiceMode: false, paused: false, hearing: null, listenForName: true, connected: false,
   status: {project: null, files: [], tests: null, diff: '', draft: null}, messages: 0,
   info: {tasks: [], unread: undefined, events_today: undefined}, memories: [], memTab: 'all', toolTab: 'all',
+  goalTab: 'all', taskTab: 'all', projTab: 'all', projects: [], connections: null, goals: null,
 };
 let API = null;
-const call = (name, ...args) => { try { return API && API[name] ? Promise.resolve(API[name](...args)) : Promise.resolve(null); } catch (e) { return Promise.resolve(null); } };
+// Every call to Python is guarded: without the bridge (a plain browser, or before pywebview is ready) it resolves to null.
+const call = (name, ...args) => { try { return API && API[name] ? Promise.resolve(API[name](...args)).catch(() => null) : Promise.resolve(null); } catch (e) { return Promise.resolve(null); } };
 
 /* ------------------------------------------------------------------ the orb */
 const PALETTE = [[124, 108, 255], [56, 189, 248], [34, 211, 238], [240, 171, 252], [167, 139, 250]];
@@ -550,6 +664,7 @@ class Orb {
       {r: 1.72, a: 2.2, s: 0.12, size: 0.045, col: '#a78bfa'},
       {r: 1.30, a: 5.0, s: -0.27, size: 0.035, col: '#c4b5fd'},
       {r: 1.85, a: 1.2, s: 0.09, size: 0.03, col: '#93c5fd'},
+      {r: 2.1, a: 4.1, s: -0.07, size: 0.028, col: '#67e8f9'},
     ].slice(0, this.o.particles);
     this.fit();
     this.clock = 0; this.last = null; this.e = 0.2; this.sw = 1;
@@ -567,16 +682,17 @@ class Orb {
     this.e += (e - this.e) * Math.min(1, dt * 5);
     this.sw += (swirl - this.sw) * Math.min(1, dt * 1.5);
     this.clock += dt * this.sw;
-    e = this.e; swirl = this.sw; const T = this.clock;
-    if (!this.c.offsetParent && this.c.id !== 'orb-menu') return;
+    e = Math.min(1.2, this.e * this.o.gain + (this.o.boost || 0)); swirl = this.sw; const T = this.clock;
+    if (!this.c.offsetParent) return;
     if (!this.fit()) return;
     const ctx = this.ctx, W = this.c.width, H = this.c.height, cx = W / 2, cy = H / 2;
     const R = Math.min(W, H) * this.o.scale * (1 + 0.07 * e);
     ctx.clearRect(0, 0, W, H);
     // outer glow
-    const glow = ctx.createRadialGradient(cx, cy, R * 0.7, cx, cy, Math.max(R * 0.75, Math.min(R * 1.9, Math.min(W, H) / 2)));
-    glow.addColorStop(0, `rgba(118, 104, 255, ${0.16 + 0.22 * e})`);
-    glow.addColorStop(1, 'rgba(118, 104, 255, 0)');
+    const glow = ctx.createRadialGradient(cx, cy, R * 0.7, cx, cy, Math.max(R * 0.75, Math.min(R * 2.1, Math.min(W, H) / 2)));
+    glow.addColorStop(0, `rgba(124, 92, 255, ${0.2 + 0.24 * e})`);
+    glow.addColorStop(0.5, `rgba(124, 92, 255, ${0.05 + 0.08 * e})`);
+    glow.addColorStop(1, 'rgba(124, 92, 255, 0)');
     ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
     if (this.o.rings) {
       ctx.lineWidth = Math.max(1, W / 500);
@@ -587,13 +703,22 @@ class Orb {
         ctx.beginPath(); ctx.arc(cx, cy, R * k, 0, Math.PI * 2); ctx.stroke();
       });
     }
-    if (this.o.orbits) {   // faint tilted orbits behind the bubble
+    if (this.o.orbits) {   // tilted orbit rings behind the sphere, each with a small moon
       ctx.save(); ctx.lineWidth = Math.max(1, W / 650);
-      [[2.05, 0.6, -0.42, 0.2], [2.4, 0.46, 0.34, 0.13]].forEach(([rx, ry, rot, a]) => {
-        if (R * rx > W / 2 - 2 || R * ry > H / 2 - 2) return;
+      [[2.05, 0.6, -0.42, 0.22, 0.11], [2.4, 0.46, 0.34, 0.15, -0.07], [1.75, 1.6, 0.9, 0.1, 0.05]].forEach(([rx, ry, rot, a, spin], i) => {
+        if (R * rx > W / 2 - 2 && R * ry > H / 2 - 2) return;
+        const ang = rot + T * 0.015;
         const g = ctx.createLinearGradient(cx - R * rx, cy, cx + R * rx, cy);
         g.addColorStop(0, 'rgba(167,139,250,0)'); g.addColorStop(0.5, `rgba(196,181,253,${a + 0.1 * e})`); g.addColorStop(1, 'rgba(56,189,248,0)');
-        ctx.strokeStyle = g; ctx.beginPath(); ctx.ellipse(cx, cy, R * rx, R * ry, rot + T * 0.015, 0, Math.PI * 2); ctx.stroke();
+        ctx.strokeStyle = g; ctx.beginPath(); ctx.ellipse(cx, cy, R * rx, R * ry, ang, 0, Math.PI * 2); ctx.stroke();
+        // the moon on this orbit
+        const m = T * spin * 1.4 + i * 2;
+        const px = Math.cos(m) * R * rx, py = Math.sin(m) * R * ry;
+        const x = cx + px * Math.cos(ang) - py * Math.sin(ang), y = cy + px * Math.sin(ang) + py * Math.cos(ang);
+        const s = Math.max(1.5, R * 0.03);
+        const mg = ctx.createRadialGradient(x, y, 0, x, y, s * 3);
+        mg.addColorStop(0, '#fff'); mg.addColorStop(0.3, 'rgba(196,181,253,.9)'); mg.addColorStop(1, 'rgba(124,92,255,0)');
+        ctx.fillStyle = mg; ctx.beginPath(); ctx.arc(x, y, s * 3, 0, Math.PI * 2); ctx.fill();
       });
       ctx.restore();
     }
@@ -601,7 +726,7 @@ class Orb {
     ctx.save();
     ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.clip();
     const base = ctx.createRadialGradient(cx - R * 0.25, cy - R * 0.3, R * 0.05, cx, cy, R);
-    base.addColorStop(0, '#20235a'); base.addColorStop(0.55, '#0c0e2c'); base.addColorStop(1, '#1a1f55');
+    base.addColorStop(0, '#2a2470'); base.addColorStop(0.55, '#0e0f33'); base.addColorStop(1, '#1d1f5e');
     ctx.fillStyle = base; ctx.fillRect(cx - R, cy - R, 2 * R, 2 * R);
     ctx.globalCompositeOperation = 'lighter';
     const sp = 0.35;
@@ -667,11 +792,9 @@ class Orb {
 
 const orbs = {
   splash: new Orb($('#orb-splash'), {scale: 0.25, particles: 4, orbits: true}),
-  hero: new Orb($('#orb-hero'), {scale: 0.25, particles: 4, orbits: true}),
+  hero: new Orb($('#orb-hero'), {scale: 0.27, particles: 6, orbits: true, boost: 0.12}),
   voice: new Orb($('#orb-voice'), {scale: 0.22, particles: 4, rings: true}),
   brand: new Orb($('#orb-brand'), {scale: 0.4, particles: 0}),
-  menu: new Orb($('#orb-menu'), {scale: 0.36, particles: 1}),
-  profile: new Orb($('#orb-profile'), {scale: 0.34, particles: 2}),
 };
 
 let analyser = null, freq = null;
@@ -698,28 +821,28 @@ function frame(ms) {
   orbs.hero.draw(t, e, swirl);
   orbs.voice.draw(t, e, swirl);
   orbs.brand.draw(t, Math.max(0.2, e * 0.8), swirl);
-  if ($('#menu').classList.contains('show')) orbs.menu.draw(t, 0.25, 1);
-  orbs.profile.draw(t, 0.22, 1);
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
 
 /* ------------------------------------------------------------- navigation */
 function go(name) {
-  closeMenu();
   $$('.screen').forEach(el => el.classList.toggle('active', el.id === name));
-  $$('.nav button, .side-nav button').forEach(b => b.classList.toggle('on', b.dataset.go === (name === 'voice' ? 'home' : name)));
+  $$('.side-nav button').forEach(b => b.classList.toggle('on', b.dataset.go === (name === 'voice' ? 'home' : name)));
   S.screen = name;
   if (name === 'memory') loadMemories();
   if (name === 'projects') renderProjects();
   if (name === 'goals') loadGoals();
+  if (name === 'research') loadResearch();
   if (name === 'pc') { S.goals = null; renderPc(); }
 }
 document.addEventListener('click', e => {
   const target = e.target.closest('[data-go]');
   if (target && !target.closest('#sheet-body')) { go(target.dataset.go); return; }
   const act = e.target.closest('[data-act]');
-  if (act) doAct(act.dataset.act);
+  if (act) { doAct(act.dataset.act); return; }
+  const prompt = e.target.closest('[data-prompt]');
+  if (prompt) readyPrompt(prompt.dataset.prompt);
 });
 function doAct(a) {
   if (a === 'research') researchSheet();
@@ -728,20 +851,17 @@ function doAct(a) {
   else if (a === 'changes') changesSheet();
   else if (a === 'new') { newChat(); go('home'); }
   else if (a === 'pc') go('pc');
+  else if (a === 'voice') enterVoice();
 }
-function openMenu() { $('#menu').classList.add('show'); $('#scrim').classList.add('show'); }
-function closeMenu() { $('#menu').classList.remove('show'); if (!$('#sheet').classList.contains('show')) $('#scrim').classList.remove('show'); }
-$('#open-menu').addEventListener('click', openMenu);
-$('#scrim').addEventListener('click', () => { closeMenu(); closeSheet(); });
-$$('[data-menu]').forEach(b => b.addEventListener('click', () => {
-  const m = b.dataset.menu;
-  if (m === 'new') { newChat(); go('home'); }
-  else if (m === 'pc') go('pc');
-  else if (m === 'voice') enterVoice();
-  else if (m === 'research') { closeMenu(); researchSheet(); }
-  else go(m);
-}));
+// A tool card puts its ready-made prompt into the message bar; nothing is sent until the owner presses Enter.
+function readyPrompt(text) {
+  go('home');
+  const i = $('#ask-input'); i.value = text; i.focus();
+  i.setSelectionRange(text.length, text.length); grow();
+}
+$('#top-search').addEventListener('click', () => openPalette());
 $('#quit').addEventListener('click', () => call('quit'));
+$('#refresh-btn').addEventListener('click', () => { call('refresh'); renderSystem(); notice('Refreshing…'); });
 
 /* ------------------------------------------------------------- voice mode */
 function enterVoice() { go('voice'); S.voiceMode = true; S.paused = false; call('voice_mode', true); renderVoice(); }
@@ -759,6 +879,7 @@ function renderVoice() {
   btn.classList.toggle('off', off);
   btn.setAttribute('aria-label', off ? 'Start listening' : 'Pause listening');
   $('#orb-voice').setAttribute('aria-label', b || a);
+  renderSideStatus();
 }
 function tapOrb() {
   if (S.state === 'speaking') { stopAudio(); return; }
@@ -885,7 +1006,7 @@ function send(text) {
   call('send', text, S.status.draft ? S.status.draft.id : null);
 }
 const askBox = $('#ask-input');
-const grow = () => { askBox.style.height = 'auto'; askBox.style.height = Math.min(132, askBox.scrollHeight) + 'px'; };
+const grow = () => { askBox.style.height = 'auto'; askBox.style.height = Math.min(132, askBox.scrollHeight) + 'px'; askBox.style.overflowY = askBox.scrollHeight > 132 ? 'auto' : 'hidden'; };
 askBox.addEventListener('input', grow);
 askBox.addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(askBox.value); askBox.value = ''; grow(); }
@@ -895,7 +1016,7 @@ $('#ask-plus').addEventListener('click', projectsSheet);
 $('#project-pill').addEventListener('click', projectsSheet);
 $$('[data-chip]').forEach(b => b.addEventListener('click', () => {
   const c = b.dataset.chip;
-  if (c.endsWith(': ')) { const i = $('#ask-input'); i.value = c; i.focus(); grow(); return; }
+  if (c.endsWith(': ')) { readyPrompt(c); return; }
   send(c);
 }));
 
@@ -920,7 +1041,9 @@ function renderStatus(st) {
   if (d) { $('#draft-title').textContent = `Email to ${d.to.join(', ')}`; $('#draft-sub').textContent = `${d.subject} · not sent yet`; }
   $('#mem-changes').textContent = files.length ? files.join(', ') : 'No changes waiting.';
   $('#mem-chat').textContent = S.messages ? `${S.messages} message${S.messages > 1 ? 's' : ''} so far. Forgotten when Veronica closes, unless you ask her to remember something.` : 'Nothing said yet.';
-  renderSuggestions();
+  if (S.screen === 'projects') renderProjects();
+  renderTasks();
+  renderSystem();
 }
 document.addEventListener('click', e => {
   const copy = e.target.closest('[data-copy]');
@@ -939,37 +1062,48 @@ $('#draft-view').addEventListener('click', draftSheet);
 $('#draft-send').addEventListener('click', () => { const d = S.status.draft; if (!d || S.busy) return; addMessage('you', 'Send it.'); call('send_email', d.id); });
 $('#draft-discard').addEventListener('click', () => { const d = S.status.draft; if (!d || S.busy) return; addMessage('you', 'Discard the email.'); call('discard_email', d.id); });
 
-/* ------------------------------------------------- suggestions and recent */
-const ICON = {
-  cal: '<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>',
-  mail: '<svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4 7l8 6 8-6"/></svg>',
-  search: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>',
-  code: '<svg viewBox="0 0 24 24"><path d="M9 8l-4 4 4 4M15 8l4 4-4 4"/></svg>',
-  chev: '<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>',
-};
-function renderSuggestions() {
-  const s = S.status, i = S.info, items = [];
-  if ((s.files || []).length) items.push(['changes', ICON.code, 'Review your changes', `${s.files.length} file${s.files.length > 1 ? 's' : ''} waiting in ${s.project}`]);
-  if (s.draft) items.push(['draft', ICON.mail, 'An email is ready', `To ${s.draft.to.join(', ')}`]);
-  if (s.project && !(s.files || []).length) items.push(['continue', ICON.code, 'Continue your project', s.project]);
-  if (typeof i.events_today === 'number') items.push(['schedule', ICON.cal, 'Check your schedule', i.events_today ? `You have ${i.events_today} event${i.events_today > 1 ? 's' : ''} left today` : 'Nothing else today']);
-  if (i.waiting) items.unshift(['goals', ICON.code, 'Veronica has ideas for you', `${i.waiting} waiting for your approval`]);
-  if (typeof i.unread === 'number') items.push(['email', ICON.mail, 'Check your email', `${i.unread.toLocaleString()} unread`]);
-  items.push(['research', ICON.search, 'Research mode', 'Deep dive on your topic']);
-  $('#suggest').innerHTML = items.slice(0, 5).map(([k, ic, b, sub]) => `<button class="sugg" data-sugg="${k}"><span class="ic">${ic}</span><span><b>${esc(b)}</b><span>${esc(sub)}</span></span>${ICON.chev}</button>`).join('');
-  $$('[data-sugg]').forEach(b => b.addEventListener('click', () => {
-    const k = b.dataset.sugg;
-    if (k === 'changes') changesSheet();
-    else if (k === 'draft') draftSheet();
-    else if (k === 'continue') { go('home'); const inp = $('#ask-input'); inp.value = `Let's continue with ${S.status.project}: `; inp.focus(); grow(); }
-    else if (k === 'schedule') send("What's on my calendar for the rest of today?");
-    else if (k === 'email') send('Any important unread emails?');
-    else if (k === 'research') researchSheet();
-    else if (k === 'goals') go('goals');
-  }));
-  const tasks = (i.tasks || []).slice(0, 6);
-  $('#recent').innerHTML = tasks.length ? tasks.map(t => `<button class="recent" data-task="${esc(t.id)}"><span class="st ${esc(t.status)}"></span><span>${esc(t.title)}</span></button>`).join('') : '<div class="empty-note">No research yet. Ask Veronica to research a topic, or use Research Mode.</div>';
+/* --------------------------------------------- home: clock, focus, tasks, status */
+function tickClock() {
+  const now = new Date();
+  $('#clock-date').textContent = now.toLocaleDateString([], {weekday: 'short', day: 'numeric', month: 'short'});
+  const time = now.toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'});
+  const m = time.match(/^(.*?)(\s*[AaPp][Mm]\.?)?$/);
+  $('#clock-time').innerHTML = esc(m ? m[1] : time) + (m && m[2] ? '<span>' + esc(m[2].trim().toUpperCase()) + '</span>' : '');
+}
+tickClock(); setInterval(tickClock, 1000);
+// Focus Mode = she stops listening for her name (the window's listen_for_name setting), so she will not interrupt.
+function renderListen() {
+  const on = S.listenForName;
+  $('#listen-switch').classList.toggle('on', on); $('#listen-row').setAttribute('aria-pressed', String(on));
+  $('#focus-switch').classList.toggle('on', !on); $('#focus-row').setAttribute('aria-pressed', String(!on));
+  $('#focus-sub').textContent = on ? 'Off · she listens for her name' : 'Active · not listening for her name';
+}
+function toggleListen() {
+  S.listenForName = !S.listenForName; renderListen(); call('listen_for_name', S.listenForName);
+  if (S.screen !== 'voice' && S.state !== 'speaking' && S.state !== 'thinking') setState(S.listenForName ? 'idle' : 'off');
+}
+$('#listen-row').addEventListener('click', toggleListen);
+$('#focus-row').addEventListener('click', toggleListen);
+const STATUS_WORDS = {queued: 'Waiting', running: 'Working', succeeded: 'Done', failed: 'Stopped', cancelled: 'Cancelled'};
+function renderTasks() {
+  const tasks = (S.info.tasks || []).slice(0, 4);
+  $('#recent').innerHTML = tasks.length ? tasks.map(t => `<button class="task-line" data-task="${esc(t.id)}"><span class="st ${esc(t.status)}"></span><span>${esc(t.title)}</span></button>`).join('')
+    : '<div class="empty-note">No research running. Ask Veronica to research a topic, or use Research Mode.</div>';
   $$('#recent [data-task]').forEach(b => b.addEventListener('click', () => taskSheet(b.dataset.task)));
+}
+function renderSystem() {
+  const i = S.info, c = S.connections, h = (S.goals && S.goals.heartbeat) || {};
+  $('#st-online').textContent = S.connected ? 'Online' : 'Preview · not connected';
+  $('#st-memory').textContent = typeof i.memories === 'number' ? `${i.memories} ${i.memories === 1 ? 'memory' : 'memories'}` : '—';
+  const tools = c ? [c.gmail && 'Gmail', c.calendar && 'Calendar', c.search && 'Search'].filter(Boolean) : [];
+  $('#st-tools').textContent = c ? (tools.length ? `Ready · ${tools.join(', ')}` : 'Code, voice, hands') : '—';
+  $('#st-auto').textContent = i.beating ? 'Running' : h.on === false ? 'Off' : S.goals ? 'Idle' : '—';
+  $('#bell-dot').classList.toggle('show', !!i.waiting);
+  renderSideStatus();
+}
+function renderSideStatus() {
+  const words = {loading: 'Starting…', listening: 'Listening…', thinking: 'Thinking…', speaking: 'Speaking…', paused: 'Paused', off: 'Online • Quiet', idle: 'Online • Ready'};
+  $('#side-status').textContent = S.connected ? (words[S.state] || 'Online • Ready') : (S.state === 'loading' ? 'Starting…' : 'Preview');
 }
 
 /* ------------------------------------------------------------------ sheets */
@@ -977,11 +1111,15 @@ function openSheet(title, html) {
   $('#sheet-title').textContent = title; $('#sheet-body').innerHTML = html;
   $('#sheet').classList.add('show'); $('#scrim').classList.add('show');
 }
-function closeSheet() { $('#sheet').classList.remove('show'); if (!$('#menu').classList.contains('show')) $('#scrim').classList.remove('show'); S.sheetTask = null; }
+function closeSheet() { $('#sheet').classList.remove('show'); $('#scrim').classList.remove('show'); S.sheetTask = null; }
 $('#sheet-close').addEventListener('click', closeSheet);
+$('#scrim').addEventListener('click', closeSheet);
+const FOLDER = '<svg viewBox="0 0 24 24"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg>';
+const isOpen = p => !!S.status.project && (S.status.project === p.name || S.status.project === p.folder);
 async function projectRows() {
   const list = (await call('projects')) || [];
-  return (list.map(p => `<button class="proj" data-name="${esc(p.name)}"><b>${esc(p.name)}</b><span>${esc(p.folder)}</span></button>`).join('') || '<p>No saved projects yet. Add them to projects.json in Veronica\'s folder, or type a folder below.</p>') +
+  S.projects = list;
+  return (list.map(p => `<button class="glass proj" data-name="${esc(p.name)}"><span class="ic">${FOLDER}</span><span><b>${esc(p.name)}</b><span>${esc(p.folder)}</span></span>${isOpen(p) ? '<span class="pill active">Active</span>' : '<span class="pill">Open</span>'}</button>`).join('') || '<p class="empty-note">No saved projects yet. Add them to projects.json in Veronica\'s folder, or type a folder below.</p>') +
     `<div class="path-row"><input id="path-input" placeholder="C:\\Users\\you\\projects\\my-app" aria-label="Folder path"><button class="pill-btn primary" id="path-open">Open</button></div>`;
 }
 function wireProjects(root, after) {
@@ -991,16 +1129,34 @@ function wireProjects(root, after) {
   $('#path-input', root).addEventListener('keydown', e => { if (e.key === 'Enter') openPath(); });
 }
 async function projectsSheet() {
-  closeMenu();
   openSheet('Open a project', await projectRows());
   wireProjects($('#sheet-body'), closeSheet);
 }
 async function renderProjects() {
-  const s = S.status;
-  const now = s.project ? `<div class="settings"><div class="set"><svg viewBox="0 0 24 24"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg>Open now<em class="ok">${esc(s.project)}</em></div></div>` : '';
-  $('#projects-body').innerHTML = now + '<div class="section-title">Saved projects</div>' + await projectRows();
-  wireProjects($('#projects-body'), () => setTimeout(renderProjects, 400));
+  const s = S.status, list = (await call('projects')) || [];
+  S.projects = list;
+  const shown = S.projTab === 'open' ? list.filter(isOpen) : list;
+  const now = s.project && !list.some(isOpen) ? `<div class="glass proj"><span class="ic">${FOLDER}</span><span><b>${esc(s.project)}</b><span>Open now</span></span><span class="pill active">Active</span></div>` : '';
+  const rows = shown.map(p => `<div class="glass proj" data-name="${esc(p.name)}"><span class="ic">${FOLDER}</span><span><b>${esc(p.name)}</b><span>${esc(p.folder)}</span></span>${isOpen(p) ? '<span class="pill active">Active</span>' : `<button class="pill purple" data-open="${esc(p.name)}">Open</button>`}<button class="more" data-more="${esc(p.name)}" aria-label="More"><svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg></button></div>`).join('');
+  $('#projects-body').innerHTML = (S.projTab === 'open' ? now : now + rows) ||
+    (S.projTab === 'open' ? '<div class="empty-note">No project is open. Pick one below or type a folder.</div>' : '<div class="empty-note">No saved projects yet. Add them to projects.json in Veronica\'s folder, or open a folder with New Project.</div>');
+  if (S.projTab === 'all') $('#projects-body').insertAdjacentHTML('beforeend', `<div class="path-row"><input id="path-input" placeholder="C:\\Users\\you\\projects\\my-app" aria-label="Folder path"><button class="pill-btn primary" id="path-open">Open</button></div>`);
+  const again = () => setTimeout(renderProjects, 400);
+  $$('[data-open]', $('#projects-body')).forEach(b => b.addEventListener('click', () => { call('open_project', b.dataset.open); again(); }));
+  $$('[data-more]', $('#projects-body')).forEach(b => b.addEventListener('click', () => {
+    const p = S.projects.find(x => x.name === b.dataset.more); if (!p) return;
+    openSheet(p.name, `<p>${esc(p.folder)}</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="pill-btn primary" id="sheet-open-proj">Open in Veronica</button><button class="pill-btn" id="sheet-copy-path">Copy path</button></div>`);
+    $('#sheet-open-proj').addEventListener('click', () => { call('open_project', p.name); closeSheet(); again(); });
+    $('#sheet-copy-path').addEventListener('click', () => { navigator.clipboard && navigator.clipboard.writeText(p.folder); notice('Path copied.'); });
+  }));
+  if ($('#path-input', $('#projects-body'))) {
+    const openPath = () => { const v = $('#path-input').value.trim(); if (v) { call('open_project', v); again(); } };
+    $('#path-open').addEventListener('click', openPath);
+    $('#path-input').addEventListener('keydown', e => { if (e.key === 'Enter') openPath(); });
+  }
 }
+$('#project-new').addEventListener('click', async () => { S.projTab = 'all'; $$('#proj-tabs button').forEach(x => x.classList.toggle('on', x.dataset.tab === 'all')); await renderProjects(); const i = $('#path-input'); if (i) { i.focus(); i.scrollIntoView(); } });
+$$('#proj-tabs button').forEach(b => b.addEventListener('click', () => { S.projTab = b.dataset.tab; $$('#proj-tabs button').forEach(x => x.classList.toggle('on', x === b)); renderProjects(); }));
 function changesSheet() {
   const s = S.status;
   if (!(s.files || []).length) return openSheet('Waiting changes', '<p>Nothing is waiting for keep or undo.</p>');
@@ -1011,7 +1167,8 @@ function draftSheet() {
   if (!d) return openSheet('Email draft', '<p>No email is waiting to be sent.</p>');
   openSheet('Email draft · not sent yet', `<p class="mail-head">To: ${esc(d.to.join(', '))}</p><p class="mail-head">Subject: ${esc(d.subject)}</p><div class="mail-view">${esc(d.body)}</div><p style="margin-top:12px">Nothing is sent until you press Send or say “send it”.</p>`);
 }
-const STATUS_WORDS = {queued: 'Waiting', running: 'Working', succeeded: 'Done', failed: 'Stopped', cancelled: 'Cancelled'};
+
+/* ---------------------------------------------------------------- research */
 function taskLine(t) {
   const bits = [];
   if (t.steps) bits.push(`${t.steps} steps`);
@@ -1022,24 +1179,26 @@ function taskLine(t) {
   if (t.error && t.status !== 'succeeded') bits.push(t.error);
   return bits.join(' · ');
 }
-async function researchSheet() {
-  closeMenu();
+function researchSheet() { go('research'); }
+async function loadResearch() {
   const list = (await call('tasks')) || S.info.tasks || [];
-  const rows = list.map(t => `<button class="task-row" data-task="${esc(t.id)}"><b>${esc(t.title)}</b><em class="${esc(t.status)}">${STATUS_WORDS[t.status] || esc(t.status)}</em><span>${esc(taskLine(t))}</span></button>`).join('');
-  openSheet('Research', `<p>Veronica searches the web, reads sources and writes a report with citations, checked against the pages she read. It runs in the background, with limits on time and cost.</p>
-    <div class="path-row"><input id="topic-input" placeholder="What should Veronica research?" aria-label="Research topic"><button class="pill-btn primary" id="topic-go">Start</button></div>
-    <div class="section-title">Tasks</div>${rows || '<p>No research yet.</p>'}`);
-  const go_ = async () => {
-    const v = $('#topic-input').value.trim(); if (!v) return;
-    $('#topic-go').disabled = true;
-    const id = await call('start_research', v, 'page-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8));
-    if (id) { notice('Research started. It runs in the background.'); researchSheet(); }
-    else $('#topic-go').disabled = false;
-  };
-  $('#topic-go').addEventListener('click', go_);
-  $('#topic-input').addEventListener('keydown', e => { if (e.key === 'Enter') go_(); });
-  $$('.task-row', $('#sheet-body')).forEach(b => b.addEventListener('click', () => taskSheet(b.dataset.task)));
+  const tab = S.taskTab;
+  const shown = list.filter(t => tab === 'all' || (tab === 'running' ? ['queued', 'running'].includes(t.status) : tab === 'failed' ? ['failed', 'cancelled'].includes(t.status) : t.status === tab));
+  $('#research-list').innerHTML = shown.map(t => `<button class="glass task-row" data-task="${esc(t.id)}"><b>${esc(t.title)}</b><em class="${esc(t.status)}">${STATUS_WORDS[t.status] || esc(t.status)}</em><span>${esc(taskLine(t))}</span></button>`).join('')
+    || '<div class="empty-note">No research yet. Type a topic above and press Start; it runs in the background.</div>';
+  $$('.task-row', $('#research-list')).forEach(b => b.addEventListener('click', () => taskSheet(b.dataset.task)));
 }
+const startResearch = async () => {
+  const v = $('#topic-input').value.trim(); if (!v) return;
+  $('#topic-go').disabled = true;
+  const id = await call('start_research', v, 'page-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8));
+  $('#topic-go').disabled = false;
+  if (id) { $('#topic-input').value = ''; notice('Research started. It runs in the background.'); loadResearch(); }
+  else notice(API ? 'Research could not start.' : 'Preview only: not connected to Veronica.');
+};
+$('#topic-go').addEventListener('click', startResearch);
+$('#topic-input').addEventListener('keydown', e => { if (e.key === 'Enter') startResearch(); });
+$$('#task-tabs button').forEach(b => b.addEventListener('click', () => { S.taskTab = b.dataset.tab; $$('#task-tabs button').forEach(x => x.classList.toggle('on', x === b)); loadResearch(); }));
 async function taskSheet(id) {
   const t = await call('task', id);
   if (!t) return notice('That task is not available.');
@@ -1050,17 +1209,22 @@ async function taskSheet(id) {
                 '<button class="pill-btn" id="task-back">All research</button>'].join(' ');
   openSheet(t.title, `<p><b style="color:var(--text);font-weight:500">${STATUS_WORDS[t.status] || esc(t.status)}</b> · ${esc(taskLine(t))}</p>
     ${t.report ? '<p>The citation check confirms each [n] points to a page Veronica read and each quote is in that page. It does not prove the claims are true.</p>' : ''}
-    <div style="display:flex;gap:8px;margin:6px 0 10px">${acts}</div><ul class="events">${events}</ul>`);
+    <div style="display:flex;gap:8px;margin:6px 0 10px;flex-wrap:wrap">${acts}</div><ul class="events">${events}</ul>`);
   if ($('#task-open')) $('#task-open').addEventListener('click', () => call('open_report', id));
   if ($('#task-cancel')) $('#task-cancel').addEventListener('click', async () => { await call('cancel_task', id); notice('Cancelling…'); setTimeout(() => taskSheet(id), 600); });
-  $('#task-back').addEventListener('click', researchSheet);
+  $('#task-back').addEventListener('click', () => { closeSheet(); go('research'); });
 }
 
 /* ------------------------------------------------------------------ memory */
+const KIND_WORDS = {preference: 'Preference', fact: 'Fact'};
+const memDate = m => m.updated_at ? new Date((typeof m.updated_at === 'number' ? m.updated_at * 1000 : m.updated_at)).toLocaleDateString([], {day: 'numeric', month: 'short', year: 'numeric'}) : '';
 async function loadMemories() { S.memories = (await call('memories')) || []; renderMemories(); }
 function renderMemories() {
+  const conv = S.memTab === 'conversation';
+  $('#mem-now').style.display = conv || S.memTab === 'all' ? '' : 'none';
+  $('#mem-list').style.display = conv ? 'none' : '';
   const shown = S.memories.filter(m => S.memTab === 'all' || m.kind === S.memTab);
-  $('#mem-list').innerHTML = shown.length ? shown.map(m => `<div class="mem" data-mem="${m.id}"><b>${esc(m.content)}</b><small>${esc(m.kind)} · ${esc(m.provenance)}</small><span class="acts"><button class="pill-btn" data-edit="${m.id}">Edit</button><button class="pill-btn danger" data-forget="${m.id}">Forget</button></span></div>`).join('<div style="height:8px"></div>')
+  $('#mem-list').innerHTML = shown.length ? shown.map(m => `<div class="glass mem" data-mem="${m.id}"><b>${esc(m.content)}</b><span class="meta">${m.kind ? `<span class="pill purple">${esc(KIND_WORDS[m.kind] || m.kind)}</span>` : ''}${memDate(m) ? `<span>${esc(memDate(m))}</span>` : ''}${m.provenance ? `<span>· ${esc(m.provenance)}</span>` : ''}</span><span class="acts"><button class="pill-btn" data-edit="${m.id}">Edit</button><button class="pill-btn danger" data-forget="${m.id}">Forget</button></span></div>`).join('')
     : '<div class="empty-note">Nothing remembered yet. Say “Veronica, remember that…” and it will appear here.</div>';
   $$('[data-forget]').forEach(b => b.addEventListener('click', async () => { await call('forget_memory', Number(b.dataset.forget)); loadMemories(); }));
   $$('[data-edit]').forEach(b => b.addEventListener('click', () => {
@@ -1081,11 +1245,11 @@ async function renderPc() {
   $('#hands-beat-row').setAttribute('aria-pressed', String(h.hands !== false));
   const waiting = S.status.pending_pc;
   $('#pc-waiting').innerHTML = waiting
-    ? `<div class="goal waiting"><b>Waiting for your yes</b><span class="acts"><button class="pill-btn danger" id="pc-deny">Deny</button><button class="pill-btn primary" id="pc-allow">Allow</button></span><p>${esc(waiting.words)}</p></div>`
+    ? `<div class="glass goal plain waiting"><b>Waiting for your yes</b><span class="acts"><button class="pill-btn danger" id="pc-deny">Deny</button><button class="pill-btn primary" id="pc-allow">Allow</button></span><p>${esc(waiting.words)}</p></div>`
     : '<div class="empty-note">Nothing is waiting. When Veronica wants to click, type or open something, she asks here first.</div>';
   const log = (h.recent || []).filter(r => r.kind === 'pc');
   $('#pc-log').innerHTML = log.length ? log.map(r =>
-    `<div class="goal"><small>${when(r.at)} · ${esc(r.item || '')}</small><p>${esc(r.summary.slice(0, 300))}</p></div>`).join('')
+    `<div class="glass goal plain"><small>${when(r.at)} · ${esc(r.item || '')}</small><p>${esc(r.summary.slice(0, 300))}</p></div>`).join('')
     : '<div class="empty-note">Her hands have done nothing yet.</div>';
   const allow = $('#pc-allow'), deny = $('#pc-deny');
   if (allow) allow.addEventListener('click', async () => { await call('allow_pc'); S.goals = null; renderPc(); });
@@ -1106,26 +1270,53 @@ const ACTIONS = {
 const ITEM_WORDS = {proposed: 'Waiting for you', active: 'Active', paused: 'Paused', done: 'Done', declined: 'Declined',
                     dropped: 'Dropped', pending: 'Waiting for you', approved: 'Approved · being worked on', failed: 'Not done'};
 const when = at => new Date(at * 1000).toLocaleString([], {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'});
+const GOAL_ICONS = {
+  goal: '<svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.5 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/></svg>',
+  fix: '<svg viewBox="0 0 24 24"><path d="M14.5 4.5a4 4 0 0 0-4.6 5.3L4 15.7V20h4.3l5.9-5.9a4 4 0 0 0 5.3-4.6l-2.6 2.6-2.4-.6-.6-2.4z"/></svg>',
+  improvement: '<svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg>',
+  task: '<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12l3 3 5-6"/></svg>',
+};
+// Progress: there is no percentage in her data. Proposals get at most 3 heartbeats, so their bar is beats of 3;
+// a goal's bar shows its state (waiting 0, active = steps so far, done = full).
+function progressOf(r) {
+  if (['done'].includes(r.status)) return [100, 'done'];
+  if (['declined', 'dropped', 'failed'].includes(r.status)) return [0, ITEM_WORDS[r.status].toLowerCase()];
+  if (r.type === 'proposal') return r.status === 'approved' ? [Math.min(100, Math.round((r.beats || 0) / 3 * 100)), `${r.beats || 0} of 3 heartbeats`] : [0, 'waiting'];
+  if (r.status === 'active') return [Math.min(90, 10 + (r.beats || 0) * 15), `${r.beats || 0} step${r.beats === 1 ? '' : 's'}`];
+  if (r.status === 'paused') return [Math.min(90, 10 + (r.beats || 0) * 15), 'paused'];
+  return [0, 'waiting'];
+}
 function goalCard(r, actions) {
+  const kind = r.type === 'goal' ? 'goal' : r.kind;
   const tag = r.type === 'goal' ? `<span class="tag">${r.origin === 'owner' ? 'your goal' : 'goal'}</span>` : `<span class="tag ${esc(r.kind)}">${esc(r.kind)}</span>`;
   const buttons = (actions ? (ACTIONS[r.type][r.status] || []) : []).map(([a, label, cls]) =>
     `<button class="pill-btn ${cls}" data-decide="${a}" data-type="${r.type}" data-id="${r.id}">${label}</button>`).join('');
   const notes = (r.notes || []).map(n => `<small>${when(n.at)} · ${esc(n.note)}</small>`).join('');
-  const extra = [r.beats ? `${r.beats} heartbeat${r.beats > 1 ? 's' : ''}` : '', r.goal_id ? `for goal ${r.goal_id}` : '',
-                 ITEM_WORDS[r.status] || r.status].filter(Boolean).join(' · ');
-  return `<div class="goal${['proposed', 'pending'].includes(r.status) ? ' waiting' : ''}"><b>${tag}${esc(r.type)} ${r.id}: ${esc(r.title)}</b>
-    <span class="acts">${buttons}</span>${r.detail ? `<p>${esc(r.detail)}</p>` : ''}${notes}
+  const extra = [r.goal_id ? `for goal ${r.goal_id}` : '', ITEM_WORDS[r.status] || r.status].filter(Boolean).join(' · ');
+  const [pct, label] = progressOf(r);
+  return `<div class="glass goal${['proposed', 'pending'].includes(r.status) ? ' waiting' : ''}"><span class="gic k-${esc(kind)}${r.type === 'goal' && r.origin === 'owner' ? ' gold' : ''}">${GOAL_ICONS[kind] || GOAL_ICONS.goal}</span><b>${tag}${esc(r.type)} ${r.id}: ${esc(r.title)}</b>
+    <span class="acts">${buttons}</span>
+    <span class="bar"><span class="track"><span class="fill" style="width:${pct}%"></span></span><em>${esc(label)}</em></span>
+    ${r.detail ? `<p>${esc(r.detail)}</p>` : ''}${notes}
     ${r.outcome && !['proposed', 'pending', 'active', 'approved'].includes(r.status) ? `<p>Outcome: ${esc(r.outcome)}</p>` : ''}<small>${esc(extra)}</small></div>`;
+}
+function filterGoals() {
+  const tab = S.goalTab;
+  $$('.goal-group').forEach(g => { g.style.display = tab === 'all' || g.dataset.group.split(' ').includes(tab) ? '' : 'none'; });
+  const g = S.goals || {};
+  const finished = (g.finished || []).filter(r => tab === 'all' || (tab === 'completed' ? r.status === 'done' : tab === 'archived' ? r.status !== 'done' : true));
+  $('#goals-finished').innerHTML = finished.length ? finished.map(r => goalCard(r, false)).join('')
+    : `<div class="empty-note">${tab === 'archived' ? 'Nothing declined or dropped.' : 'Nothing finished yet.'}</div>`;
 }
 async function loadGoals() {
   const g = await call('goals');
-  if (!g) return;
+  if (!g) { filterGoals(); return; }
   S.goals = g;
   const list = (rows, actions, empty) => rows.length ? rows.map(r => goalCard(r, actions)).join('') : `<div class="empty-note">${empty}</div>`;
   $('#goals-waiting').innerHTML = list(g.waiting, true, 'Nothing waits for you. When Veronica has an idea or a fix, it appears here first.');
   $('#goals-work').innerHTML = list(g.work, true, 'No approved fixes or tasks in progress.');
-  $('#goals-active').innerHTML = list(g.goals, true, 'No goals yet. Add one above, or approve one of hers.');
-  $('#goals-finished').innerHTML = list(g.finished, false, 'Nothing finished yet.');
+  $('#goals-active').innerHTML = list(g.goals, true, 'No goals yet. Add one, or approve one of hers.');
+  filterGoals();
   const h = g.heartbeat || {};
   $('#beat-switch').classList.toggle('on', !!h.on); $('#beat-row').setAttribute('aria-pressed', String(!!h.on));
   $('#review-switch').classList.toggle('on', !!h.review); $('#review-row').setAttribute('aria-pressed', String(!!h.review));
@@ -1134,12 +1325,13 @@ async function loadGoals() {
   $('#beat-line').textContent = h.running ? 'Working now…' : 'Run a heartbeat now';
   $('#beat-when').textContent = h.last ? `last ${when(h.last.at)}` : 'not yet';
   $('#beat-recent').innerHTML = (h.recent || []).slice(0, 5).map(r =>
-    `<div class="goal"><small>${when(r.at)} · ${esc(r.kind)}${r.item ? ' ' + esc(r.item.replace(':', ' ')) : ''}${r.ok ? '' : ' · problem'}</small><p>${esc(r.summary.slice(0, 400))}</p></div>`).join('');
+    `<div class="glass goal plain"><small>${when(r.at)} · ${esc(r.kind)}${r.item ? ' ' + esc(r.item.replace(':', ' ')) : ''}${r.ok ? '' : ' · problem'}</small><p>${esc(r.summary.slice(0, 400))}</p></div>`).join('');
   $$('[data-decide]', $('#goals')).forEach(b => b.addEventListener('click', async () => {
     b.disabled = true;
     await call('decide', b.dataset.type, Number(b.dataset.id), b.dataset.decide);
     loadGoals();
   }));
+  renderSystem();
 }
 function renderGoalCount(n) {
   const c = $('#goals-count'); c.textContent = n || ''; c.classList.toggle('show', !!n);
@@ -1151,8 +1343,10 @@ const addGoal = async () => {
   await call('add_goal', v);
   loadGoals();
 };
+$('#goal-new').addEventListener('click', () => { const r = $('#goal-row'); r.style.display = r.style.display === 'none' ? '' : 'none'; if (r.style.display !== 'none') $('#goal-input').focus(); });
 $('#goal-add').addEventListener('click', addGoal);
 $('#goal-input').addEventListener('keydown', e => { if (e.key === 'Enter') addGoal(); });
+$$('#goal-tabs button').forEach(b => b.addEventListener('click', () => { S.goalTab = b.dataset.tab; $$('#goal-tabs button').forEach(x => x.classList.toggle('on', x === b)); filterGoals(); }));
 $('#beat-row').addEventListener('click', async () => { await call('heartbeat_settings', !(S.goals && S.goals.heartbeat && S.goals.heartbeat.on), null, null); loadGoals(); });
 $('#review-row').addEventListener('click', async () => { await call('heartbeat_settings', null, null, !(S.goals && S.goals.heartbeat && S.goals.heartbeat.review)); loadGoals(); });
 $('#beat-minutes').addEventListener('change', async e => { await call('heartbeat_settings', null, Number(e.target.value), null); loadGoals(); });
@@ -1162,34 +1356,34 @@ $('#beat-go').addEventListener('click', () => { call('beat_now'); notice('A hear
 /* ------------------------------------------------------------------- tools */
 function filterTools() {
   const q = $('#tool-search').value.trim().toLowerCase();
-  $$('#tool-cards .card').forEach(c => {
-    const okTab = S.toolTab === 'all' || c.dataset.kind === S.toolTab;
+  $$('#tool-cards .tool').forEach(c => {
+    const okTab = S.toolTab === 'all' || (c.dataset.kind || '').split(' ').includes(S.toolTab);
     const okText = !q || c.textContent.toLowerCase().includes(q);
     c.style.display = okTab && okText ? '' : 'none';
   });
 }
 $('#tool-search').addEventListener('input', filterTools);
 $$('#tool-tabs button').forEach(b => b.addEventListener('click', () => { S.toolTab = b.dataset.tab; $$('#tool-tabs button').forEach(x => x.classList.toggle('on', x === b)); filterTools(); }));
-$$('[data-expand]').forEach(b => b.addEventListener('click', () => b.classList.toggle('open')));
 
 /* -------------------------------------------------------------- settings */
 $('#about-row').addEventListener('click', async () => {
   const a = (await call('about')) || {};
-  openSheet('About', `<p><b style="color:var(--text);font-weight:500">Veronica</b>: your assistant for code, email, your calendar and research. One agent, separate from JARVIS and FRIDAY.</p>
-    <p>Thinks with ${esc(a.model || 'Claude Sonnet 5.5')}. Speaks with ${esc(a.voice || 'Fish Audio')}. Hears you on this PC; your audio is never recorded or sent.</p>
-    <p>Works in one project folder at a time and never in JARVIS's folders. Code changes wait for your keep or undo; emails are sent only when you say so.</p>
-    <p>Folder: ${esc(a.folder || '')}</p>`);
+  openSheet('Privacy & Data', `<p><b style="color:var(--text);font-weight:500">Veronica</b>: your assistant for code, email, your calendar and research. One agent, separate from JARVIS and FRIDAY.</p>
+    <p>Thinks with ${esc(a.model || 'her chat model')}. Speaks with ${esc(a.voice || 'her voice')}. Hears you on this PC; your audio is never recorded or sent.</p>
+    <p>Her memories, settings and reports stay in her own folder on this PC. Works in one project folder at a time and never in JARVIS's folders. Code changes wait for your keep or undo.</p>
+    <p>Folder: ${esc(a.folder || '')}${a.version ? ` · version ${esc(a.version)}` : ''}</p>`);
 });
-$('#listen-row').addEventListener('click', () => { S.listenForName = !S.listenForName; renderListen(); call('listen_for_name', S.listenForName); });
-function renderListen() { $('#listen-switch').classList.toggle('on', S.listenForName); $('#listen-row').setAttribute('aria-pressed', String(S.listenForName)); }
+$('#accounts-row').addEventListener('click', () => { const box = $('#accounts-box'), open = box.style.display === 'none'; box.style.display = open ? '' : 'none'; $('#accounts-row').setAttribute('aria-expanded', String(open)); });
 function renderConnections(c) {
   if (!c) return;
+  S.connections = c;
   const word = (on, yes) => on ? yes : 'Not set up';
   [['#conn-gmail', c.gmail, 'Connected'], ['#conn-calendar', c.calendar, 'Connected'], ['#conn-search', c.search, 'Brave Search']].forEach(([sel, on, yes]) => {
     const el = $(sel); el.textContent = word(on, yes); el.classList.toggle('ok', !!on);
   });
-  const parts = [c.gmail && 'Gmail', c.calendar && 'Calendar', c.search && 'Search'].filter(Boolean);
-  $('#side-status').textContent = parts.length ? parts.join(' · ') : 'Claude Sonnet 5.5';
+  const parts = [c.gmail && 'Gmail', c.calendar && 'Calendar', c.search && 'Web search'].filter(Boolean);
+  $('#accounts-sub').textContent = parts.length ? parts.join(', ') : 'Nothing connected yet';
+  renderSystem();
 }
 
 /* ------------------------------------------------------- command palette */
@@ -1197,13 +1391,18 @@ const COMMANDS = [
   ['New chat', 'Ctrl+L', () => { newChat(); go('home'); }],
   ['Goals and proposals', '', () => go('goals')],
   ['Her hands on this PC', '', () => go('pc')],
-  ['Research a topic', '', () => researchSheet()],
+  ['Research a topic', '', () => go('research')],
+  ['Projects', '', () => go('projects')],
+  ['Tools', '', () => go('tools')],
   ['Voice mode', '', () => enterVoice()],
   ['Look at the screen', '', () => { go('home'); send('Look at the screen and tell me what you see.'); }],
   ['Her hands off', '', () => { call('hands', false); notice('Her hands are off.'); }],
   ['Her hands on', '', () => { call('hands', true); notice('Her hands are on.'); }],
+  ['Focus mode on', '', () => { if (S.listenForName) toggleListen(); notice('Focus mode: she is not listening for her name.'); }],
+  ['Focus mode off', '', () => { if (!S.listenForName) toggleListen(); notice('She listens for her name again.'); }],
   ['Memory', '', () => go('memory')],
   ['Settings', '', () => go('profile')],
+  ['Quit Veronica', '', () => call('quit')],
 ];
 let paletteAt = -1;
 function palette(filter) {
@@ -1248,14 +1447,16 @@ window.veronica = {
   notice(text) { notice(text); },
   voiceMode(on) { if (on && S.screen !== 'voice') { go('voice'); S.voiceMode = true; renderVoice(); } if (!on && S.screen === 'voice') { S.voiceMode = false; go('home'); } },
   hearingReady(ok) { S.hearing = !!ok; renderVoice(); },
-  voiceName(name) { $('#voice-name').textContent = name; $('#voice-provider').textContent = name; },
+  voiceName(name) { $('#voice-name').textContent = name; },
   info(info) {
     Object.assign(S.info, info || {});
     if (info && info.pending) S.status = Object.assign({}, S.status, info.pending);
     if (info && typeof info.waiting === 'number') renderGoalCount(info.waiting);
     if (S.screen === 'goals') loadGoals();
     if (S.screen === 'pc') { S.goals = null; renderPc(); }
-    renderSuggestions();
+    if (S.screen === 'research') loadResearch();
+    renderTasks();
+    renderSystem();
     if (S.sheetTask && $('#sheet').classList.contains('show')) taskSheet(S.sheetTask);
   },
 };
@@ -1267,7 +1468,6 @@ document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
   if ($('#palette').classList.contains('show')) return closePalette();
   if ($('#sheet').classList.contains('show')) return closeSheet();
-  if ($('#menu').classList.contains('show')) return closeMenu();
   if (S.screen === 'voice') return leaveVoice();
   if (S.screen !== 'home') go('home');
 });
@@ -1275,14 +1475,18 @@ const born = performance.now();
 async function begin(api) {
   API = api;
   const info = (await call('start')) || {};
-  if (typeof info.listen_for_name === 'boolean') { S.listenForName = info.listen_for_name; renderListen(); }
+  S.connected = !!(window.pywebview && window.pywebview.api && window.pywebview.api.start);
+  if (typeof info.listen_for_name === 'boolean') S.listenForName = info.listen_for_name;
+  renderListen();
   renderConnections(info.connections);
   renderStatus();
+  call('goals').then(g => { if (g) { S.goals = g; renderSystem(); } });
+  call('about').then(a => { if (a && a.version) $('#about-version').textContent = 'v' + a.version; });
   setTimeout(() => { go('home'); setState(S.listenForName ? 'idle' : 'off'); }, Math.max(0, 1600 - (performance.now() - born)));
 }
-const phone = window.matchMedia('(max-width: 899px)');
-const placeholder = () => { $('#ask-input').placeholder = phone.matches ? 'Talk to Veronica...' : 'Message Veronica...'; };
-phone.addEventListener('change', placeholder); placeholder();
+const narrow = window.matchMedia('(max-width: 480px)');
+const placeholder = () => { askBox.placeholder = narrow.matches ? 'Message…' : 'Message Veronica…'; };
+narrow.addEventListener('change', placeholder); placeholder();
 window.addEventListener('pywebviewready', () => begin(window.pywebview.api));
 // Opened in an ordinary browser (to look at the layout): a stand-in that only echoes.
 setTimeout(() => {
@@ -1295,23 +1499,22 @@ setTimeout(() => {
     projects: () => [{name: 'calculator', folder: 'C:\\Users\\you\\projects\\calculator'}],
     tasks: () => demoTasks,
     task: id => Object.assign({events: [{at: Date.now() / 1000 - 60, message: 'Started'}, {at: Date.now() / 1000, message: 'Saved the report'}]}, demoTasks.find(t => t.id === id)),
-    memories: () => [{id: 1, kind: 'preference', content: 'Use British spelling in reports.', provenance: 'the owner, in conversation'}],
+    memories: () => [{id: 1, kind: 'preference', content: 'Use British spelling in reports.', provenance: 'the owner, in conversation', updated_at: Date.now() / 1000}],
     goals: () => ({waiting: [{type: 'proposal', id: 2, kind: 'improvement', title: 'Cache calendar lookups for 5 minutes', detail: 'Calendar is fetched on every question; a short cache would make answers faster.', status: 'pending', beats: 0},
                              {type: 'goal', id: 3, origin: 'veronica', title: 'Keep my test suite green', detail: 'Fix one failing test per day.', status: 'proposed', beats: 0}],
                    work: [{type: 'proposal', id: 1, kind: 'fix', title: 'Fix my health check: worker', detail: '', status: 'approved', beats: 1}],
                    goals: [{type: 'goal', id: 1, origin: 'owner', title: 'Learn my weekly routine', detail: '', status: 'active', beats: 2, notes: [{at: Date.now() / 1000 - 3600, note: 'Read this week\'s calendar: gym Mon/Wed/Fri 6am.'}]}],
                    finished: [], heartbeat: {on: true, review: true, minutes: 60, running: false, last: {at: Date.now() / 1000 - 1800, summary: 'worked on goal 1', ok: true}, recent: []}}),
-    about: () => ({model: 'Claude Sonnet 5.5', voice: 'Fish Audio', folder: '(preview)'}),
+    about: () => ({model: 'her chat model', voice: 'her voice', folder: '(preview)'}),
   });
   setTimeout(() => {
-    window.veronica.hearingReady(true); window.veronica.info({tasks: demoTasks, unread: 12, events_today: 3, waiting: 2});
-    const demo = location.hash.slice(1);   // preview only: #chat, #voice, #tools, #memory, #profile, #research
+    window.veronica.hearingReady(true); window.veronica.info({tasks: demoTasks, unread: 12, events_today: 3, waiting: 2, memories: 1});
+    const demo = location.hash.slice(1);   // preview only: #chat, #voice, #tools, #memory, #profile, #research, #goals, #projects
     if (demo === 'chat') {
       addMessage('you', 'Reply to Jack and say Thursday works');
       addMessage('veronica', 'Jack asked about lunch on Thursday. I drafted a reply saying Thursday works. The email to jack@example.com is ready: say send it, or discard it.');
       renderStatus({project: 'calculator', files: ['app.py'], tests: true, diff: '', draft: {id: 'd1', to: ['jack@example.com'], subject: 'Re: Lunch?', body: 'Thursday works!'}});
     } else if (demo === 'voice') { enterVoice(); }
-    else if (demo === 'research') { researchSheet(); }
     else if (demo) { go(demo); }
   }, 2100);
 }, 2500);
