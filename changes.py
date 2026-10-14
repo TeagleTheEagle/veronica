@@ -118,9 +118,24 @@ def detect_test_command(root):
             return 'npm test'
     if _has_python_tests(root):
         local = root / '.venv' / 'Scripts' / 'python.exe'
-        python = f'"{local}"' if local.is_file() else ('python' if sys.platform == 'win32' else 'python3')
+        if local.is_file():
+            python = f'"{local}"'
+        elif _is_her_own(root):
+            import paths                   # her own code without a .venv (the installed app): the Python she runs on,
+            python = f'"{paths.PYTHON}"'   # which has her packages; a bare "python" found the system one (proposal 2)
+        else:
+            python = 'python' if sys.platform == 'win32' else 'python3'
         return f'{python} -m pytest -q'
     return None
+
+
+def _is_her_own(root):
+    """True when the folder is her own program folder."""
+    try:
+        import paths
+        return Path(root).resolve() == Path(paths.PROGRAM).resolve()
+    except Exception:
+        return False
 
 
 def _has_python_tests(root, depth=3):

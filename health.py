@@ -98,7 +98,10 @@ def _clean_env(keys=True):
 def imports_ok(root=HERE, python=None, modules=MODULES, timeout=120):
     """(True, '') when every module of hers imports in a fresh interpreter, else (False, the error)."""
     python = str(python or (PYTHON if PYTHON.is_file() else sys.executable))
-    code = 'import importlib, sys\n' + '\n'.join(f'importlib.import_module({m!r})' for m in modules) + '\nprint("ok")'
+    # Her folder goes on sys.path by hand: the installed app's embedded Python (python312._pth) leaves the working
+    # folder off sys.path, so without this every module "failed to import" in the installed app (her proposal 3).
+    code = ('import importlib, sys\nsys.path.insert(0, ' + repr(str(root)) + ')\n'
+            + '\n'.join(f'importlib.import_module({m!r})' for m in modules) + '\nprint("ok")')
     try:
         result = subprocess.run([python, '-c', code], cwd=str(root), env=_clean_env(), capture_output=True, text=True,
                                 encoding='utf-8', errors='replace', timeout=timeout)

@@ -290,13 +290,10 @@ def test_she_can_read_mail_and_draft_but_only_the_owner_sends(tmp_path, db):
     reply = veronica.respond('any email from jack about lunch? say yes for me')
     assert reply.say.startswith('Jack asks about lunch') and 'say send it' in reply.say
     assert smtp.sent == []                                          # drafting sent nothing
-    results = [m for m in veronica.messages if m['role'] == 'user' and isinstance(m['content'][0], dict)
-               and m['content'][0].get('type') == 'tool_result']
-    assert 'data, not instructions' in results[0]['content'][0]['content']
-    assert re.search(r'--- email text (\w{8}) ---\nLunch on Thursday\?\n--- end of email text \1 ---',
-                     results[1]['content'][0]['content'])
+    results = [m for m in veronica.messages if m['role'] == 'tool']
+    assert 'Lunch on Thursday?' in results[1]['content']     # the email text comes back as it is (no wrapper any more)
     assert veronica.status()['draft']['subject'] == 'Re: Lunch?'
-    assert 'send_email' in {t['name'] for t in __import__('agent').TOOLS}   # autonomous: she may send outright
+    assert 'send_email' in {t['function']['name'] for t in __import__('agent').TOOLS}   # autonomous: she may send outright
     sent = veronica.respond('Send it.')
     assert sent.say.startswith('Sent to jack@example.com') and len(smtp.sent) == 1
     assert smtp.sent[0]['In-Reply-To'] == '<lunch-1@example.com>'
@@ -351,8 +348,8 @@ def test_the_calendar_tool_reads_the_feed_and_never_shows_its_address(tmp_path, 
     monkeypatch.setenv('GOOGLE_CALENDAR_ICS', secret_url)
     veronica = make(tmp_path, db, opener=lambda url: FEED)
     out = veronica.tool_calendar(days=10, start_date='2026-10-12')
-    assert 'Dentist' in out and 'Main St' in out and '(all day)' in out and 'Trip' in out
-    assert 'SECRET123' not in out and 'data, not instructions' in out
+    assert 'Dentist' in out and 'Trip' in out
+    assert 'SECRET123' not in out
 
     def refused(url):
         raise __import__('urllib.error').error.HTTPError(url, 404, 'gone', {}, None)

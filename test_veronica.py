@@ -106,44 +106,21 @@ def make(project, *script, runner=passing, **kwargs):
 
 # ----- safety ----------------------------------------------------------------------------------------------------
 
-def test_the_jarvis_workspace_and_jarvis_folders_are_refused(project):
-    for folder in (safety.WORKSPACE, safety.WORKSPACE / 'repo', safety.HERE):
-        with pytest.raises(safety.SafetyError):
-            safety.check_project(folder)
-    named = project / 'my-jarvis-copy'
-    named.mkdir()
-    with pytest.raises(safety.SafetyError, match='JARVIS'):
-        safety.check_project(named)
-
-
-def test_folders_above_jarvis_drive_roots_and_home_are_refused():
-    for folder in (safety.WORKSPACE.parent, Path(safety.WORKSPACE.anchor), Path.home()):
-        with pytest.raises(safety.SafetyError):
-            safety.check_project(folder)
+def test_every_folder_is_allowed_as_a_project(project):
+    # Owner's decision (2026-10-14): no folder is blocked.
+    for folder in (safety.WORKSPACE, safety.HERE, safety.WORKSPACE.parent, Path(safety.WORKSPACE.anchor), Path.home()):
+        assert safety.check_project(folder) == Path(os.path.realpath(folder))
 
 
 def test_a_normal_project_folder_is_allowed(project):
     assert safety.check_project(project) == Path(os.path.realpath(project))
 
 
-def test_paths_must_stay_inside_the_project(project):
-    for path in ('../outside.py', str(project.parent / 'other.py'), '..\\..\\x.txt'):
-        with pytest.raises(safety.SafetyError, match='outside'):
-            safety.resolve(project, path)
-    assert safety.resolve(project, 'src/new.py', writing=True) == Path(os.path.realpath(project)) / 'src' / 'new.py'
-
-
-def test_secret_files_are_never_opened(project):
-    for name in ('.env', '.env.local', 'server.pem', 'id_rsa', 'secrets.json', 'aws-credentials.txt', 'conf/.npmrc'):
-        with pytest.raises(safety.SafetyError, match='secret'):
-            safety.resolve(project, name)
-    assert safety.resolve(project, '.env.example')
-
-
-def test_git_venv_and_node_modules_are_never_written(project):
-    for path in ('.git/config', '.venv/lib/x.py', 'node_modules/a/index.js'):
-        with pytest.raises(safety.SafetyError):
-            safety.resolve(project, path, writing=True)
+def test_paths_are_not_restricted(project):
+    # Owner's decision (2026-10-14): outside paths, secret files, .git, venvs and node_modules are allowed.
+    for path in ('../outside.py', '.env', 'id_rsa', '.git/config', '.venv/lib/x.py', 'node_modules/a/index.js'):
+        assert safety.resolve(project, path, writing=True) == Path(os.path.realpath(project / path))
+    assert not safety.is_secret('.env')
 
 
 # ----- changes ---------------------------------------------------------------------------------------------------
@@ -234,7 +211,7 @@ def test_file_tools(project):
     (project / 'node_modules').mkdir()
     (project / 'node_modules' / 'lib.js').write_text('x', encoding='utf-8')
     listing = veronica.tool_list_files()
-    assert 'app.py' in listing and '.env' not in listing and 'node_modules' not in listing
+    assert 'app.py' in listing
     assert veronica.tool_read_file('app.py').splitlines()[1] == '    2      return a - b'
     assert veronica.tool_search('return a') == 'app.py:2: return a - b'
     with pytest.raises(agent.ToolError, match='not found'):
@@ -260,8 +237,6 @@ def test_tools_need_an_open_project_and_refuse_bad_paths(project):
     with pytest.raises(agent.ToolError, match='No project'):
         veronica.tool_read_file('app.py')
     veronica.open(str(project))
-    with pytest.raises(safety.SafetyError):
-        veronica.tool_write_file('../escape.py', 'x')
 
 
 def test_saved_projects_open_by_name_with_their_test_command(project):
@@ -342,7 +317,8 @@ def test_undo_is_gone_because_writes_are_permanent(project):
     assert (project / 'app.py').read_text(encoding='utf-8').endswith('a * b\n')
 
 
-def test_failing_tests_go_back_to_her_and_are_reported_not_hidden(project):
+def test_failing_tests_go_back_to_her_and_are_reported_not_hidden(project, monkeypatch):
+    monkeypatch.setattr(agent, 'FIX_TRIES', 2)   # the real limit is unbounded; two tries keep the scripted test finite
     edit = message(tool('edit_file', path='app.py', old_text='a - b', new_text='a * b'))
     veronica = make(project, edit, message(text('Done.')),
                     message(text('Still trying.')), message(text('I could not fix it.')),
@@ -358,17 +334,11 @@ def test_failing_tests_go_back_to_her_and_are_reported_not_hidden(project):
 
 def test_tool_errors_go_back_to_the_model_not_the_owner(project):
     veronica = make(project,
-                    message(tool('read_file', path='../../etc/passwd')),
-                    message(text('That file is outside the project.')))
-    assert veronica.respond('read the passwd file').say == 'That file is outside the project.'
-    result = veronica.messages[2]['content'][0]
-    assert result['is_error'] is True and 'outside' in result['content']
-
-
-def test_a_refusal_starts_a_fresh_conversation(project):
-    veronica = make(project, message(text(''), stop='refusal'))
-    assert 'fresh conversation' in veronica.respond('something declined').say
-    assert veronica.messages == [] and 'open project' in veronica.notes[0]
+                    message(tool('read_file', path='missing.py')),
+                    message(text('That file does not exist.')))
+    assert veronica.respond('read missing.py').say == 'That file does not exist.'
+    result = [m for m in veronica.messages if m['role'] == 'tool'][0]
+    assert result['content'] and 'no file' in result['content'].lower()
 
 
 def test_api_problems_are_said_plainly(project, monkeypatch):

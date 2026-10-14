@@ -155,7 +155,7 @@ class Win32:
         import numpy as np
         user32, gdi32 = ctypes.windll.user32, ctypes.windll.gdi32
         width, height = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
-        screen = gdi32.GetDC(0)
+        screen = user32.GetDC(0)                 # GetDC and ReleaseDC are user32 calls (gdi32 has neither)
         memory = gdi32.CreateCompatibleDC(screen)
         bitmap = gdi32.CreateCompatibleBitmap(screen, width, height)
         gdi32.SelectObject(memory, bitmap)
@@ -170,7 +170,7 @@ class Win32:
         gdi32.GetDIBits(memory, bitmap, 0, height, pixels.ctypes.data, ctypes.byref(info), 0)
         gdi32.DeleteObject(bitmap)
         gdi32.DeleteDC(memory)
-        gdi32.ReleaseDC(0, screen)
+        user32.ReleaseDC(0, screen)
         return png(pixels[:, :, [2, 1, 0, 3]])
 
     def windows(self):
